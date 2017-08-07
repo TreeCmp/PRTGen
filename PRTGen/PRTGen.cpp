@@ -295,7 +295,7 @@ class Tree
 			return tree;
 		}
 		
-		static void All(int N, bool rooted, ostream& file)
+		static void All(int N, bool rooted, bool binary, ostream& file)
 		{
 			Tree *tree = new Tree();
 			/*
@@ -310,50 +310,78 @@ class Tree
 			for(int i = 0; i < N; i++)
 				label[i] = i + 1;
 			
-			int n = 0;
+			int n = 0; 
+			// create two initial vertex and join them
 			tree->root = new Node(label[n++]);
 			tree->nodes.push_back(tree->root);
-			
 			Node *node = new Node(label[n++]);
 			Node::join(tree->root, node);
 			tree->edges.push_back(new Edge(tree->root, node));
 			tree->nodes.push_back(node);
 			
-			tree->Explode(n, N, rooted, file, label);
+
+			tree->Explode(n, N, rooted, binary, file, label);
 			
 			delete [] label;
 			tree->Delete();
 		}
 		
-		void Explode(int n, int N, bool rooted, ostream& file, int *label)
+		void Explode(int n, int N, bool rooted, bool binary, ostream& file, int *label)
 		{
-			if(n == N && !rooted)
+			if(n == N && (!rooted || !binary))
 			{
 				Print(root, NULL, file);
 				file << ";" <<endl;
-				return;
+				if (!rooted) return;
 			}
 			
+			if (n < N && !binary) {
+				for (int i = 0; i < nodes.size(); i++) {
+					// for all internal nodes
+					if (nodes[i]->index == 0)
+					{
+						// create new leaf
+						Node *leaf = new Node(label[n]);
+						// and join it with internal node
+						Node::join(nodes[i], leaf);
+						Edge *second = new Edge(nodes[i], leaf);
+						edges.push_back(second);
+						nodes.push_back(leaf);
+						Explode(n + 1, N, rooted, binary, file, label);
+						// remove all changes
+						nodes.pop_back();
+						edges.pop_back();
+						delete second;
+						Node::erase(nodes[i]->edges, leaf);
+						delete leaf;
+					}
+
+				}
+			}
+
 			for(int i = 0; i < edges.size(); i++)
 			{
-				Edge *edge = edges[i];
+				Edge *edge = edges[i];				
 				
+				// remove edge
 				Edge::erase(edges, edge);
 				Node::erase(edge->left->edges, edge->right);
 				Node::erase(edge->right->edges, edge->left);
 				
+				// create new internal verticle
 				Node *node = root;
 				root = new Node();
 				
+				// add join it with two removed edge neighbours
 				Node::join(root, edge->left);
 				Node::join(root, edge->right);
-				
+								
 				Edge *left = new Edge(root, edge->left);
 				Edge *right = new Edge(root, edge->right);
 				edges.push_back(left);
 				edges.push_back(right);
-				nodes.push_back(root);
-				
+				nodes.push_back(root);				
+
 				if(n == N && rooted)
 				{
 					Print(root, NULL, file);
@@ -361,13 +389,14 @@ class Tree
 				}
 				else
 				{
+					// create new leaf and join it with new internal node
 					Node *leaf = new Node(label[n]);
 					Node::join(root, leaf);
 					Edge *third = new Edge(root, leaf);
 					edges.push_back(third);
 					nodes.push_back(leaf);
 					
-					Explode(n + 1, N, rooted, file, label);
+					Explode(n + 1, N, rooted, binary, file, label);
 					
 					nodes.pop_back();
 					edges.pop_back();
@@ -376,6 +405,7 @@ class Tree
 					delete leaf;
 				}
 				
+				// remove all changes
 				nodes.pop_back();
 				edges.pop_back();
 				edges.pop_back();
@@ -466,7 +496,7 @@ class TreeGenerator
 					}
 					break;
 				case ALL:
-					Tree::All(N, rooted, file);
+					Tree::All(N, rooted, binary, file);
 					break;
 			}
 		

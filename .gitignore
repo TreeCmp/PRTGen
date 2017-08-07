@@ -1,3 +1,6 @@
+# Newick files
+*.newick
+
 # Prerequisites
 *.d
 

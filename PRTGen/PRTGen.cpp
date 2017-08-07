@@ -1,10 +1,25 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <deque>
 #include <algorithm>
 #include <cstdlib>
 #include <ctime>
+#ifdef _WIN32
+
+#include <tchar.h>
+#include "..\XGetopt\XGetopt.h"
+#define ATOI_FUNC _wtoi
+#define ATOF_FUNC _wtof
+#define PTGEN_EXE "PTGen.exe"
+
+#else
+
 #include <unistd.h>
+#define ATOI_FUNC atoi
+#define ATOF_FUNC atof
+#define PTGEN "./PTGen"
+
+#endif
 
 using namespace std;
 
@@ -28,6 +43,12 @@ class Node
 			a->edges.push_back(b);
 			b->edges.push_back(a);
 		}
+
+		static void separate(Node *a, Node *b)
+		{
+			Node::erase(a->edges, b);
+			Node::erase(b->edges, a);
+		}
 		
 		static void erase(deque<Node*>& edges, Node *a)
 		{		
@@ -49,11 +70,21 @@ class Edge
 		static int count;
 	
 		Edge(Node *a, Node *b) : left(a), right(b) { count++; }
-		
-		static void erase(deque<Edge*>& edges, Edge *a)
+
+		static void erase(deque<Edge*>& edges, Node *n)
+		{
+			for (int i = 0; i < edges.size(); i++)
+				if (edges[i]->left == n || edges[i]->right == n)
+				{
+					edges.erase(edges.begin() + i);
+					return;
+				}
+		}
+
+		static void erase(deque<Edge*>& edges, Edge *e)
 		{		
 			for(int i = 0; i < edges.size(); i++)
-				if(edges[i] == a)
+				if(edges[i] == e)
 				{
 					edges.erase(edges.begin() + i);
 					return;
@@ -78,119 +109,188 @@ class Tree
 	
 		Tree() { count++; }
 	
-		static Tree* Equal(int N, bool rooted)
+		static Tree* Equal(int N, bool rooted, bool binary, float P)
 		{
 			Tree *tree = new Tree();
-			
+
 			int *label = new int[N];
-			for(int i = 0; i < N; i++)
+			for (int i = 0; i < N; i++)
 				label[i] = i + 1;
-			
+
 			int n = 0;
-			tree->root = new Node(label[n++]);
+			// create root and two initial vertices
+			tree->root = new Node();
 			tree->nodes.push_back(tree->root);
-			
-			Node *node = new Node(label[n++]);
-			Node::join(tree->root, node);
-			tree->edges.push_back(new Edge(tree->root, node));
-			tree->nodes.push_back(node);
-			
-			while(true)
-			{
-				if(n == N && !rooted)
-					break;
-				
-				Edge *edge = tree->edges[rand() % tree->edges.size()];
-				
-				Edge::erase(tree->edges, edge);
-				Node::erase(edge->left->edges, edge->right);
-				Node::erase(edge->right->edges, edge->left);
-				
-				tree->root = new Node();
-				Node::join(tree->root, edge->left);
-				tree->edges.push_back(new Edge(tree->root, edge->left));
-				Node::join(tree->root, edge->right);
-				tree->edges.push_back(new Edge(tree->root, edge->right));
-				tree->nodes.push_back(tree->root);
-				
-				delete edge;
-				
-				if(n == N && rooted)
-					break;
-				
+			// create two initial vertices and join them with root
+			Node *node, *inode;
+			for (int i = 0; i < 2; i++) {
 				node = new Node(label[n++]);
+				tree->nodes.push_back(node);
 				Node::join(tree->root, node);
 				tree->edges.push_back(new Edge(tree->root, node));
+			}
+
+			while (true)
+			{
+				if (n == N)
+					break;
+
+				// take random edge
+				Edge *edge = tree->edges[rand() % tree->edges.size()];
+				// always take last edge (only for debuging)
+				//edge = tree->edges[tree->edges.size() - 1];
+				// always take first edge (only for debuging)
+				//edge = tree->edges[0];
+
+				// add bifurcation with 1-P probability
+				if (P < static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) {
+
+					// remove taken edge
+					Edge::erase(tree->edges, edge);
+					Node::erase(edge->left->edges, edge->right);
+					Node::erase(edge->right->edges, edge->left);
+
+					// add new internal vertex
+					inode = new Node();
+					tree->nodes.push_back(inode);
+
+					// add two edges betwen new internal vertex and removed edge neighbours
+					Node::join(inode, edge->left);
+					tree->edges.push_back(new Edge(inode, edge->left));
+					Node::join(inode, edge->right);
+					tree->edges.push_back(new Edge(inode, edge->right));
+
+					delete edge;
+				}
+				// otherwise, multifurcation will be added
+				else {
+					inode = edge->left;
+				}
+
+				// create new vertex
+				node = new Node(label[n++]);
+				Node::join(inode, node);
+				tree->edges.push_back(new Edge(inode, node));
 				tree->nodes.push_back(node);
 			}
+
+			// shrink root verticle
+			if (!rooted) {
+				if (tree->root->edges.size() == 2) {
+					// take two root neighbours
+					node = tree->root->edges[0];
+					inode = tree->root->edges[1];
+					// remove root with two incident edges
+					Edge::erase(tree->edges, tree->root);
+					Node::separate(node, tree->root);
+					Node::separate(inode, tree->root);
+					// add new edge between root neighbours
+					Node::join(node, inode);
+					tree->edges.push_back(new Edge(node, inode));
+					// pointer to root must be set to internal vertex
+					tree->root = inode;
+				}
+			}
+
 			delete[] label;
 			return tree;
 		}
 		
-		static Tree* Yule(int N, bool rooted)
+		static Tree* Yule(int N, bool rooted, bool binary, float P)
 		{
 			Tree *tree = new Tree();
-			
+
 			int *label = new int[N];
-			//stara wersja
-            //for(int i = 0; i < N; i++)
-			//	label[i] = i + 1;
-			//for(int i = N - 1; i >= 1; i--)
-			//{
-			//	int index = rand() % i, temp = label[index];
-			//	label[index] = label[i], label[i] = temp;
-			//}
-			
-			//moja poprawka
-            for(int i = 0; i < N; i++)
+			for (int i = 0; i < N; i++)
 				label[i] = i + 1;
+
+			// permutate labels
 			for(int i = N - 1; i >= 1; i--)
 			{
-				int index = rand() % (i+1), temp = label[index];
-				label[index] = label[i], label[i] = temp;
+				int index = rand() % (i + 1);
+				swap(label[index], label[i]);
 			}
-			
+
 			int n = 0;
-			tree->root = new Node(label[n++]);
+			// create root and two initial vertices
+			tree->root = new Node();
 			tree->nodes.push_back(tree->root);
-			Node *node = new Node(label[n++]);
-			Node::join(tree->root, node);
-			tree->edges.push_back(new Edge(tree->root, node));
-			tree->nodes.push_back(node);
+			// create two initial vertices and join them with root
+			Node *node, *inode;
+			for (int i = 0; i < 2; i++) {
+				node = new Node(label[n++]);
+				tree->nodes.push_back(node);
+				Node::join(tree->root, node);
+				tree->edges.push_back(new Edge(tree->root, node));
+			}
 			
 			while(true)
 			{
-				if(n == N && !rooted)
+				if(n == N)
 					break;
 				
+				// take random pending edge (at least one vertex with non-zero index)
 				Edge *edge;
 				do
 				{
 					edge = tree->edges[rand() % tree->edges.size()];
+					// always take last edge (only for debuging)
+					//edge = tree->edges[tree->edges.size() - 1];
+					// always take first edge (only for debuging)
+					//edge = tree->edges[0];
 				}
 				while(edge->pendant() == false && !(n == N && rooted));
 				
-				Edge::erase(tree->edges, edge);
-				Node::erase(edge->left->edges, edge->right);
-				Node::erase(edge->right->edges, edge->left);
-				
-				tree->root = new Node();
-				Node::join(tree->root, edge->left);
-				tree->edges.push_back(new Edge(tree->root, edge->left));
-				Node::join(tree->root, edge->right);
-				tree->edges.push_back(new Edge(tree->root, edge->right));
-				tree->nodes.push_back(tree->root);
-				
-				delete edge;
-				
-				if(n == N && rooted)
-					break;
-				
+				// add bifurcation with 1-P probability
+				if (P < static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) {
+
+					// remove taken edge
+					Edge::erase(tree->edges, edge);
+					Node::erase(edge->left->edges, edge->right);
+					Node::erase(edge->right->edges, edge->left);
+
+					// add new internal vertex
+					inode = new Node();
+					tree->nodes.push_back(inode);
+
+					// add two edges betwen new internal vertex and removed edge neighbours
+					Node::join(inode, edge->left);
+					tree->edges.push_back(new Edge(inode, edge->left));
+					Node::join(inode, edge->right);
+					tree->edges.push_back(new Edge(inode, edge->right));
+					
+					delete edge;
+				}
+				// otherwise, multifurcation will be added
+				else {
+					inode = edge->left;
+				}
+
+				// create new vertex
 				node = new Node(label[n++]);
-				Node::join(tree->root, node);
-				tree->edges.push_back(new Edge(tree->root, node));
+				Node::join(inode, node);
+				tree->edges.push_back(new Edge(inode, node));
 				tree->nodes.push_back(node);
 			}
+
+			// shrink root verticle
+			if (!rooted) {
+				if (tree->root->edges.size() == 2) {
+					// take two root neighbours
+					node = tree->root->edges[0];
+					inode = tree->root->edges[1];
+					// remove root with two incident edges
+					Edge::erase(tree->edges, tree->root);
+					Node::separate(node, tree->root);
+					Node::separate(inode, tree->root);
+					// add new edge between root neighbours
+					Node::join(node, inode);
+					tree->edges.push_back(new Edge(node, inode));
+					// pointer to root must be set to internal vertex
+					tree->root = inode;
+				}
+			}
+
 			delete[] label;
 			return tree;
 		}
@@ -340,7 +440,7 @@ int Node::count = 0, Edge::count = 0, Tree::count = 0;
 class TreeGenerator
 {
 	public:
-		TreeGenerator(int N, Model model, int M, bool rooted, ostream& file)
+		TreeGenerator(int N, Model model, int M, bool rooted, bool binary, float P, ostream& file)
 		{
 			srand(time(NULL));
 			switch(model)
@@ -349,7 +449,7 @@ class TreeGenerator
 					//file << M << endl;
 					for(int i = 0; i < M; i++)
 					{
-						Tree *tree = Tree::Equal(N, rooted);
+						Tree *tree = Tree::Equal(N, rooted, binary, P);
 						Tree::Print(tree->root, NULL, file);
 						file << ";" <<endl;
 						tree->Delete();
@@ -359,7 +459,7 @@ class TreeGenerator
 					//file << M << endl;
 					for(int i = 0; i < M; i++)
 					{
-						Tree *tree = Tree::Yule(N, rooted);
+						Tree *tree = Tree::Yule(N, rooted, binary, P);
 						Tree::Print(tree->root, NULL, file);
 						file << ";"<< endl;
 						tree->Delete();
@@ -378,27 +478,57 @@ class TreeGenerator
 		}
 };
 
+void printHelp() {
+	cout << "Configuration: " << PTGEN_EXE <<" [-n N] [-ey M] [-ru] [-f X]" << endl;
+	cout << "- n N - number of leaves (required N >= 3)\n";
+	cout << "- e M - M trees with uniform distribution\n";
+	cout << "- y M - M trees with Yule's distribution\n";
+	cout << "- r - rooted trees\n";
+	cout << "- u - unrooted trees\n";
+	cout << "- b - binary trees";
+	cout << "- a P - arbitrary trees with P propablility of multifurcation occurence (required 0 >= P >= 1)\n";
+	cout << "- f X - save result to X file (default to console)\n\n";
+	cout << "Without - e or -y option generates all possible N - leaf trees\n";
+	cout << "By default binary rooted trees are generated\n";
+}
+
+/*********************************************************************************/
+/*                                 MAIN FUNCTION                                 */
+/*********************************************************************************/
+
+#ifdef _WIN32
+int _tmain(TCHAR count, TCHAR **value)
+#else
 int main(int count, char **value)
+#endif
+
 {
-	int N, M;
+	int N = 0, M = 0;
+	float P = 0.0;
 	bool rooted = true;
+	bool binary = true;
 	Model model = ALL;
 	ofstream *file = NULL;
 
 	int option;
-	while ((option = getopt (count, value, "n:e:y:ruf:")) != -1)
+#ifdef _WIN32
+	while ((option = getopt(count, value, L"n:e:y:ruba:f:")) != -1)
+#else
+	while (option = getopt (count, value, "n:e:y:ruba:f:") != -1)
+#endif
 		switch(option)
 		{
 			case 'n':
-				N = atoi(optarg);
+				N = ATOI_FUNC(optarg);
 				break;
 			case 'e':
 				model = EQUAL;
-				M = atoi(optarg);
+				M = ATOI_FUNC(optarg);
+
 				break;
 			case 'y':
 				model = YULE;
-				M = atoi(optarg);
+				M = ATOI_FUNC(optarg);
 				break;
 			case 'r':
 				rooted = true;
@@ -406,28 +536,41 @@ int main(int count, char **value)
 			case 'u':
 				rooted = false;
 				break;
+			case 'b':
+				binary = true;
+				break;
+			case 'a':
+				binary = false;
+				P = ATOF_FUNC(optarg);
+				break;
 			case 'f':
 				file = new ofstream(optarg);
 				if(file == NULL)
 				{
-					cout << "Problem z otwarciem pliku: " << optarg << endl;
+					cout << "Problem opening file: " << optarg << endl;
 					return 0;
 				}
 				break;
 			default:
-				cout << "Konfiguracja: ./PTGen [-n N] [-ey M] [-ru] [-f X]" << endl;
+				printHelp();
 				return 0;
 		}
 	
-	if(M < 1 && model != ALL)
-		cout << "Wymagane M >= 1" << endl;
-	else if(N < 3)
-		cout << "Wymagane N >= 3" << endl;
+	if (M < 1 && model != ALL)
+	{
+		cout << "Required M >= 1" << endl;
+		printHelp();
+	}
+	else if (N < 3)
+	{
+		cout << "Required N >= 3" << endl;
+		printHelp();
+	}
 	else if(file == NULL)
-		new TreeGenerator(N, model, M, rooted, cout);
+		new TreeGenerator(N, model, M, rooted, binary, P, cout);
 	else
 	{
-		new TreeGenerator(N, model, M, rooted, *file);	
+		new TreeGenerator(N, model, M, rooted, binary, P, *file);
 		file->close();
 	}
 	

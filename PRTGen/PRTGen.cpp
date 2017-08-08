@@ -510,15 +510,16 @@ class TreeGenerator
 
 void printHelp() {
 	cout << "Configuration: " << PTGEN_EXE <<" [-n N] [-ey M] [-ru] [-f X]" << endl;
-	cout << "- n N - number of leaves (required N >= 3)\n";
-	cout << "- e M - M trees with uniform distribution\n";
-	cout << "- y M - M trees with Yule's distribution\n";
-	cout << "- r - rooted trees\n";
-	cout << "- u - unrooted trees\n";
-	cout << "- b - binary trees";
-	cout << "- a P - arbitrary trees with P propablility of multifurcation occurence (required 0 >= P >= 1)\n";
-	cout << "- f X - save result to X file (default to console)\n\n";
-	cout << "Without - e or -y option generates all possible N - leaf trees\n";
+	cout << "-n N - number of leaves (required N >= 3)\n";
+	cout << "-e M - M trees with uniform distribution\n";
+	cout << "-y M - M trees with Yule's distribution\n";
+	cout << "-r - rooted trees\n";
+	cout << "-u - unrooted trees\n";
+	cout << "-b - binary trees";
+	cout << "-a P - arbitrary trees with P propablility of multifurcation occurence (required 0 >= P >= 1)\n";
+	cout << "-f X - save result to X file (default to console)\n\n";
+	cout << "Without -e or -y option generates all possible binary arbitraty N-leaf trees\n";
+	cout << "With -a and without -e or -y option generates all possible arbitraty N-leaf trees (P value is required but will be ignored)\n";
 	cout << "By default binary rooted trees are generated\n";
 }
 

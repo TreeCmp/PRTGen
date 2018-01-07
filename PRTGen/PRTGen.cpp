@@ -17,7 +17,7 @@
 #include <unistd.h>
 #define ATOI_FUNC atoi
 #define ATOF_FUNC atof
-#define PTGEN "./PTGen"
+#define PTGEN_EXE "./PTGen"
 
 #endif
 

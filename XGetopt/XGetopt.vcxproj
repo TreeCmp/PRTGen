@@ -77,11 +77,9 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="StdAfx.cpp" />
     <ClCompile Include="XGetopt.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="StdAfx.h" />
     <ClInclude Include="XGetopt.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

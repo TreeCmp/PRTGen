@@ -26,20 +26,35 @@ using namespace std;
 
 class ProgressCounter
 {
-public:
-
 	int trees_number, trees_counted, nodes_number;
-	double prevCalcPassed, calcPassed;
+	double calcPassed;
 	const int interval_percent = 10;
 	clock_t clock_begin, clock_actual;
-	double elapsed_secs, prev_elapsed_secs;
+	double elapsed_secs = 0;
+	double prev_elapsed_secs = 0;
 	const double interval_secs = 10.0;
+	bool rooted, binary;
 
-	ProgressCounter(int N, int M) {
-		clock_begin = clock();
-		trees_number = M;
-		trees_counted = 0;
+	//double factorial function
+	static int dfact(int n)
+	{
+		int i; double res = 1.0;
+		for (i = n; i >= 1; i -= 2)
+		{
+			res *= i;
+		}
+		return res;
+	}
+
+public:
+
+	ProgressCounter(int N, int M, bool R, bool B) {	
 		nodes_number = N;
+		rooted = R;
+		binary = B;
+		trees_number = M ? M : dfact(2 * nodes_number - (rooted ? 3 : 5));
+		trees_counted = 0;
+		clock_begin = clock();
 	}
 
 	void nextTreeCounted()
@@ -47,18 +62,15 @@ public:
 		trees_counted++;
 	}
 
-	void updateProgress(int n)
+	void updateProgress(int n = 0)
 	{
-		prev_elapsed_secs = elapsed_secs;
 		clock_actual = clock();
 		elapsed_secs = double(clock_actual - clock_begin) / CLOCKS_PER_SEC;
-
-		prevCalcPassed = calcPassed;
 		calcPassed = 100 * (trees_counted / static_cast<double>(trees_number) + n / static_cast<double>(nodes_number) / static_cast<double>(trees_number));
 
-		if (static_cast<int>(elapsed_secs / interval_secs) != static_cast<int>(prev_elapsed_secs / interval_secs) ||
-			static_cast<int>(prevCalcPassed / interval_percent) != static_cast<int>(calcPassed) / interval_percent)
+		if ( elapsed_secs - prev_elapsed_secs > interval_secs)
 		{
+			prev_elapsed_secs = elapsed_secs;
 			cout << calcPassed << "% calculations passed" << endl;
 		}
 	}
@@ -67,8 +79,10 @@ public:
 	{
 		prev_elapsed_secs = elapsed_secs;
 		elapsed_secs = double(clock_actual - clock_begin) / CLOCKS_PER_SEC;
-		cout << endl << "Calculation time: " << elapsed_secs << " seconds" << endl;
+
+		cout << "The calculation of " << trees_number << (binary ? " binary" : " unary") << (rooted ? " rooted" : " unrooted") << (trees_number > 1 ? " trees" : " tree") << " with " << nodes_number << " leves took " << elapsed_secs << " seconds" << endl;
 	}
+
 };
 
 enum Model
@@ -357,7 +371,7 @@ class Tree
 			return tree;
 		}
 		
-		static void All(int N, bool rooted, bool binary, ostream& file)
+		static void All(int N, bool rooted, bool binary, ostream& file, ProgressCounter* pc)
 		{
 			Tree *tree = new Tree();
 			/*
@@ -381,17 +395,19 @@ class Tree
 			tree->edges.push_back(new Edge(tree->root, node));
 			tree->nodes.push_back(node);
 			
+			tree->Explode(n, N, rooted, binary, file, label, pc);
+			pc->updateProgress();
 
-			tree->Explode(n, N, rooted, binary, file, label);
-			
 			delete [] label;
 			tree->Delete();
 		}
 		
-		void Explode(int n, int N, bool rooted, bool binary, ostream& file, int *label)
-		{
+		void Explode(int n, int N, bool rooted, bool binary, ostream& file, int *label, ProgressCounter* pc)
+		{			
 			if(n == N && (!rooted || !binary))
 			{
+				pc->nextTreeCounted();
+				pc->updateProgress();
 				Print(root, NULL, file);
 				file << ";" <<endl;
 				if (!rooted) return;
@@ -409,7 +425,7 @@ class Tree
 						Edge *second = new Edge(nodes[i], leaf);
 						edges.push_back(second);
 						nodes.push_back(leaf);
-						Explode(n + 1, N, rooted, binary, file, label);
+						Explode(n + 1, N, rooted, binary, file, label, pc);
 						// remove all changes
 						nodes.pop_back();
 						edges.pop_back();
@@ -446,6 +462,8 @@ class Tree
 
 				if(n == N && rooted)
 				{
+					pc->nextTreeCounted();
+					pc->updateProgress();
 					Print(root, NULL, file);
 					file << ";" <<endl;
 				}
@@ -458,7 +476,7 @@ class Tree
 					edges.push_back(third);
 					nodes.push_back(leaf);
 					
-					Explode(n + 1, N, rooted, binary, file, label);
+					Explode(n + 1, N, rooted, binary, file, label, pc);
 					
 					nodes.pop_back();
 					edges.pop_back();
@@ -535,7 +553,7 @@ class TreeGenerator
 		TreeGenerator(int N, Model model, int M, bool rooted, bool binary, float P, ostream& file)
 		{
 			ProgressCounter* pc = NULL;
-			if (&file != &cout) pc = new ProgressCounter(N, M);
+			if (&file != &cout) pc = new ProgressCounter(N, M, rooted, binary);
 			switch(model)
 			{
 				case EQUAL:
@@ -561,7 +579,7 @@ class TreeGenerator
 					}
 					break;
 				case ALL:
-					Tree::All(N, rooted, binary, file);
+					Tree::All(N, rooted, binary, file, pc);
 					break;
 			}
 			if (pc)

@@ -24,6 +24,44 @@
 
 using namespace std;
 
+class ProgressCounter
+{
+public:
+
+	int trees_number, trees_counted, nodes_number;
+	clock_t clock_begin, clock_actual;
+	double elapsed_secs, prev_elapsed_secs;
+	double interval_secs = 10.0;
+
+	ProgressCounter(int N, int M) {
+		clock_begin = clock();
+		trees_number = M;
+		trees_counted = 0;
+		nodes_number = N;
+	}
+
+	void nextTreeCounted()
+	{
+		trees_counted++;
+	}
+
+	void updateProgress(int n, bool show_absolutely = false)
+	{
+		prev_elapsed_secs = elapsed_secs;
+		clock_actual = clock();
+		elapsed_secs = double(clock_actual - clock_begin) / CLOCKS_PER_SEC;
+		if (show_absolutely || static_cast<int>(elapsed_secs / interval_secs) != static_cast<int>(prev_elapsed_secs / interval_secs)) {
+			cout << 100*(trees_counted / static_cast<double>(trees_number) + n / static_cast<double>(nodes_number) / static_cast<double>(trees_number)) << "% calculations time passed" << endl;
+		}
+	}
+
+	void finishCalsc(){
+		prev_elapsed_secs = elapsed_secs;
+		elapsed_secs = double(clock_actual - clock_begin) / CLOCKS_PER_SEC;
+		cout << endl << "Calculation time: " << elapsed_secs << " seconds" << endl;
+	}
+};
+
 enum Model
 {
 	ALL, EQUAL, YULE
@@ -113,7 +151,7 @@ class Tree
 			count++;
 		}
 	
-		static Tree* Equal(int N, bool rooted, bool binary, float P)
+		static Tree* Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 		{
 			std::random_device rd;  //Will be used to obtain a seed for the random number engine
 			std::default_random_engine e1(rd());
@@ -179,6 +217,8 @@ class Tree
 				Node::join(inode, node);
 				tree->edges.push_back(new Edge(inode, node));
 				tree->nodes.push_back(node);
+
+				pc->updateProgress(n);
 			}
 
 			// shrink root verticle
@@ -203,11 +243,12 @@ class Tree
 			return tree;
 		}
 		
-		static Tree* Yule(int N, bool rooted, bool binary, float P)
+		static Tree* Yule(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 		{
 			std::random_device rd;  //Will be used to obtain a seed for the random number engine
 			std::default_random_engine e1(rd());
-			std::uniform_int_distribution<int> distribution(0, INT_MAX);
+			std::uniform_int_distribution<int> range_0_INTMAX_unif_int_distr(0, INT_MAX);
+			std::uniform_real_distribution<float> range_0_1_unif_float_distr(0, 1);
 			Tree *tree = new Tree();
 
 			int *label = new int[N];
@@ -217,7 +258,7 @@ class Tree
 			// permutate labels
 			for(int i = N - 1; i >= 1; i--)
 			{
-				int index = distribution(e1) % (i + 1);
+				int index = range_0_INTMAX_unif_int_distr(e1) % (i + 1);
 				swap(label[index], label[i]);
 			}
 
@@ -243,7 +284,7 @@ class Tree
 				Edge *edge;
 				do
 				{
-					edge = tree->edges[distribution(e1) % tree->edges.size()];
+					edge = tree->edges[range_0_INTMAX_unif_int_distr(e1) % tree->edges.size()];
 					// always take last edge (only for debuging)
 					//edge = tree->edges[tree->edges.size() - 1];
 					// always take first edge (only for debuging)
@@ -252,7 +293,7 @@ class Tree
 				while(edge->pendant() == false && !(n == N && rooted));
 				
 				// add bifurcation with 1-P probability
-				if (P < static_cast<float>(distribution(e1)) / static_cast<float>(INT_MAX)) {
+				if (P < static_cast<float>(range_0_1_unif_float_distr(e1)) / static_cast<float>(INT_MAX)) {
 
 					// remove taken edge
 					Edge::erase(tree->edges, edge);
@@ -281,6 +322,8 @@ class Tree
 				Node::join(inode, node);
 				tree->edges.push_back(new Edge(inode, node));
 				tree->nodes.push_back(node);
+
+				pc->updateProgress(n);
 			}
 
 			// shrink root verticle
@@ -482,32 +525,41 @@ class TreeGenerator
 	public:
 		TreeGenerator(int N, Model model, int M, bool rooted, bool binary, float P, ostream& file)
 		{
-
+			ProgressCounter* pc = NULL;
+			if (&file != &cout) pc = new ProgressCounter(N, M);
 			switch(model)
 			{
 				case EQUAL:
 					//file << M << endl;
 					for(int i = 0; i < M; i++)
 					{
-						Tree *tree = Tree::Equal(N, rooted, binary, P);
+						Tree *tree = Tree::Equal(N, rooted, binary, P, pc);
 						Tree::Print(tree->root, NULL, file);
 						file << ";" <<endl;
 						tree->Delete();
+						if (pc) pc->nextTreeCounted();
 					}
 					break;
 				case YULE:
 					//file << M << endl;
 					for(int i = 0; i < M; i++)
 					{
-						Tree *tree = Tree::Yule(N, rooted, binary, P);
+						Tree *tree = Tree::Yule(N, rooted, binary, P, pc);
 						Tree::Print(tree->root, NULL, file);
 						file << ";"<< endl;
 						tree->Delete();
+						if (pc) pc->nextTreeCounted();
 					}
 					break;
 				case ALL:
 					Tree::All(N, rooted, binary, file);
 					break;
+			}
+			if (pc)
+			{
+				pc->updateProgress(0, true);
+				pc->finishCalsc();
+				delete pc;
 			}
 		
 			/*

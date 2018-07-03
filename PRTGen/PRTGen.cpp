@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <ctime>
+#include <random>
 #ifdef _WIN32
 
 #include <tchar.h>
@@ -99,18 +100,24 @@ class Edge
 		~Edge()	{ count--; }
 };
 
-class Tree
+class Tree 
 {
 	public:
+
 		Node *root;
 		deque<Edge*> edges;
 		deque<Node*> nodes;
 		static int count;
-	
-		Tree() { count++; }
+
+		Tree() { 
+			count++;
+		}
 	
 		static Tree* Equal(int N, bool rooted, bool binary, float P)
 		{
+			std::random_device rd;  //Will be used to obtain a seed for the random number engine
+			std::default_random_engine e1(rd());
+			std::uniform_int_distribution<int> distribution(0, INT_MAX);
 			Tree *tree = new Tree();
 
 			int *label = new int[N];
@@ -136,14 +143,14 @@ class Tree
 					break;
 
 				// take random edge
-				Edge *edge = tree->edges[rand() % tree->edges.size()];
+				Edge *edge = tree->edges[distribution(e1) % tree->edges.size()];
 				// always take last edge (only for debuging)
 				//edge = tree->edges[tree->edges.size() - 1];
 				// always take first edge (only for debuging)
 				//edge = tree->edges[0];
 
 				// add bifurcation with 1-P probability
-				if (P < static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) {
+				if (P < static_cast<float>(distribution(e1)) / static_cast<float>(INT_MAX)) {
 
 					// remove taken edge
 					Edge::erase(tree->edges, edge);
@@ -198,6 +205,9 @@ class Tree
 		
 		static Tree* Yule(int N, bool rooted, bool binary, float P)
 		{
+			std::random_device rd;  //Will be used to obtain a seed for the random number engine
+			std::default_random_engine e1(rd());
+			std::uniform_int_distribution<int> distribution(0, INT_MAX);
 			Tree *tree = new Tree();
 
 			int *label = new int[N];
@@ -207,7 +217,7 @@ class Tree
 			// permutate labels
 			for(int i = N - 1; i >= 1; i--)
 			{
-				int index = rand() % (i + 1);
+				int index = distribution(e1) % (i + 1);
 				swap(label[index], label[i]);
 			}
 
@@ -233,7 +243,7 @@ class Tree
 				Edge *edge;
 				do
 				{
-					edge = tree->edges[rand() % tree->edges.size()];
+					edge = tree->edges[distribution(e1) % tree->edges.size()];
 					// always take last edge (only for debuging)
 					//edge = tree->edges[tree->edges.size() - 1];
 					// always take first edge (only for debuging)
@@ -242,7 +252,7 @@ class Tree
 				while(edge->pendant() == false && !(n == N && rooted));
 				
 				// add bifurcation with 1-P probability
-				if (P < static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) {
+				if (P < static_cast<float>(distribution(e1)) / static_cast<float>(INT_MAX)) {
 
 					// remove taken edge
 					Edge::erase(tree->edges, edge);
@@ -472,7 +482,7 @@ class TreeGenerator
 	public:
 		TreeGenerator(int N, Model model, int M, bool rooted, bool binary, float P, ostream& file)
 		{
-			srand(time(NULL));
+
 			switch(model)
 			{
 				case EQUAL:
@@ -515,7 +525,7 @@ void printHelp() {
 	cout << "-y M - M trees with Yule's distribution\n";
 	cout << "-r - rooted trees\n";
 	cout << "-u - unrooted trees\n";
-	cout << "-b - binary trees";
+	cout << "-b - binary trees\n";
 	cout << "-a P - arbitrary trees with P propablility of multifurcation occurence (required 0 >= P >= 1)\n";
 	cout << "-f X - save result to X file (default to console)\n\n";
 	cout << "Without -e or -y option generates all possible binary arbitraty N-leaf trees\n";

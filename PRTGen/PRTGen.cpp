@@ -29,9 +29,11 @@ class ProgressCounter
 public:
 
 	int trees_number, trees_counted, nodes_number;
+	double prevCalcPassed, calcPassed;
+	const int interval_percent = 10;
 	clock_t clock_begin, clock_actual;
 	double elapsed_secs, prev_elapsed_secs;
-	double interval_secs = 10.0;
+	const double interval_secs = 10.0;
 
 	ProgressCounter(int N, int M) {
 		clock_begin = clock();
@@ -45,17 +47,24 @@ public:
 		trees_counted++;
 	}
 
-	void updateProgress(int n, bool show_absolutely = false)
+	void updateProgress(int n)
 	{
 		prev_elapsed_secs = elapsed_secs;
 		clock_actual = clock();
 		elapsed_secs = double(clock_actual - clock_begin) / CLOCKS_PER_SEC;
-		if (show_absolutely || static_cast<int>(elapsed_secs / interval_secs) != static_cast<int>(prev_elapsed_secs / interval_secs)) {
-			cout << 100*(trees_counted / static_cast<double>(trees_number) + n / static_cast<double>(nodes_number) / static_cast<double>(trees_number)) << "% calculations time passed" << endl;
+
+		prevCalcPassed = calcPassed;
+		calcPassed = 100 * (trees_counted / static_cast<double>(trees_number) + n / static_cast<double>(nodes_number) / static_cast<double>(trees_number));
+
+		if (static_cast<int>(elapsed_secs / interval_secs) != static_cast<int>(prev_elapsed_secs / interval_secs) ||
+			static_cast<int>(prevCalcPassed / interval_percent) != static_cast<int>(calcPassed) / interval_percent)
+		{
+			cout << calcPassed << "% calculations passed" << endl;
 		}
 	}
 
-	void finishCalsc(){
+	void finishCalsc()
+	{
 		prev_elapsed_secs = elapsed_secs;
 		elapsed_secs = double(clock_actual - clock_begin) / CLOCKS_PER_SEC;
 		cout << endl << "Calculation time: " << elapsed_secs << " seconds" << endl;
@@ -557,7 +566,6 @@ class TreeGenerator
 			}
 			if (pc)
 			{
-				pc->updateProgress(0, true);
 				pc->finishCalsc();
 				delete pc;
 			}

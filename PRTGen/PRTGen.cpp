@@ -597,7 +597,7 @@ class TreeGenerator
 };
 
 void printHelp() {
-	cout << "Configuration: " << PTGEN_EXE <<" [-n N] [-ey M] [-ru] [-f X]" << endl;
+	cout << "Configuration: " << PTGEN_EXE <<" [-n N] [-e M|-y M] [-r|-u] [-b|-p P] [-f X]" << endl;
 	cout << "-n N - number of leaves (required N >= 3)\n";
 	cout << "-e M - M trees with uniform distribution\n";
 	cout << "-y M - M trees with Yule's distribution\n";

@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <deque>
 #include <algorithm>
@@ -48,18 +49,41 @@ class ProgressCounter
 
 public:
 
-	ProgressCounter(int N, int M, bool R, bool B) {	
+	ProgressCounter(int N, int M, bool R, bool B) {
 		nodes_number = N;
 		rooted = R;
 		binary = B;
-		trees_number = M ? M : dfact(2 * nodes_number - (rooted ? 3 : 5));
+		if (M)
+		{
+			trees_number = M;
+		}
+		else if (binary)
+		{
+			trees_number = dfact(2 * nodes_number - (rooted ? 3 : 5));
+		}
+		else
+		{
+			trees_number = dfact(2 * nodes_number - (rooted ? 3 : 5));
+		}
+
 		trees_counted = 0;
 		clock_begin = clock();
+		showDateNadTimeNow();
+		cout << "Start of calculation...please wait..." << endl;
+		showDateNadTimeNow();
+		cout << 0.0 << "% calculations..." << endl;
 	}
 
 	void nextTreeCounted()
 	{
 		trees_counted++;
+	}
+
+	void showDateNadTimeNow() {
+		std::time_t t = std::time(0);   // get time now
+		std::tm* now = std::localtime(&t);
+		std::cout << (now->tm_year + 1900) << '-' << setfill('0') << setw(2) << setfill('0') << setw(2) << (now->tm_mon + 1) << '-' << setfill('0') << setw(2) << now->tm_mday << " "
+			<< setfill('0') << setw(2) << now->tm_hour << ":" << setfill('0') << setw(2) << now->tm_min << ":" << setfill('0') << setw(2) << now->tm_sec << ": ";
 	}
 
 	void updateProgress(int n = 0)
@@ -71,7 +95,8 @@ public:
 		if ( elapsed_secs - prev_elapsed_secs > interval_secs)
 		{
 			prev_elapsed_secs = elapsed_secs;
-			cout << calcPassed << "% calculations passed" << endl;
+			showDateNadTimeNow();
+			cout << setfill('0') << fixed << setprecision(0) << calcPassed << "% calculations..." << endl;
 		}
 	}
 
@@ -79,8 +104,9 @@ public:
 	{
 		prev_elapsed_secs = elapsed_secs;
 		elapsed_secs = double(clock_actual - clock_begin) / CLOCKS_PER_SEC;
-
-		cout << "The calculation of " << trees_number << (binary ? " binary" : " unary") << (rooted ? " rooted" : " unrooted") << (trees_number > 1 ? " trees" : " tree") << " with " << nodes_number << " leves took " << elapsed_secs << " seconds" << endl;
+		showDateNadTimeNow();
+		cout << setfill('0') << fixed << setprecision(0) << calcPassed << "% calculations..." << endl;
+		cout << "generating " << trees_number << (binary ? " binary" : " unary") << (rooted ? " rooted" : " unrooted") << (trees_number > 1 ? " trees" : " tree") << " with " << nodes_number << " leves took " << elapsed_secs << " seconds" << endl;
 	}
 
 };

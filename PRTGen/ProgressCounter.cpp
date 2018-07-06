@@ -6,9 +6,9 @@
 using namespace std;
 
 //double factorial function
-static int dfact(int n)
+static unsigned long long dfact(int n)
 {
-	int i; double res = 1.0;
+	int i, res = 1;
 	for (i = n; i >= 1; i -= 2)
 	{
 		res *= i;
@@ -16,7 +16,7 @@ static int dfact(int n)
 	return res;
 }
 
-static int T(int n, int m)
+static unsigned long long T(unsigned long long n, unsigned long long m)
 {
 	if (n == 1) {
 		if (m == 0)
@@ -28,16 +28,7 @@ static int T(int n, int m)
 			return 0;
 		}
 	}
-	//if (m == 1)
-	//{
-	//	return T(n - 1, 1);
-	//}
-	//else
-	{
-		int Tn1m = T(n - 1, m);
-		int Tn1m1 = T(n - 1, m - 1);
-		return m * Tn1m + (n + m - 2) * Tn1m1;
-	}
+	return m * T(n - 1, m) + (n + m - 2) *  T(n - 1, m - 1);
 }
 
 ProgressCounter::ProgressCounter(int N, int M, bool R, bool B) {
@@ -55,9 +46,9 @@ ProgressCounter::ProgressCounter(int N, int M, bool R, bool B) {
 	else
 	{
 		trees_number = 0;
-		for (int m = 1; m < nodes_number; m++)
+		for (int m = 1; m < (rooted ? nodes_number : nodes_number - 1) ; m++)
 		{
-			trees_number += T(nodes_number, m);
+			trees_number += T(rooted ? nodes_number : nodes_number - 1, m);
 		}
 	}
 
@@ -69,7 +60,7 @@ ProgressCounter::ProgressCounter(int N, int M, bool R, bool B) {
 	cout << 0.0 << "% calculations..." << endl;
 }
 
-int ProgressCounter::get_trees_number()
+unsigned long long ProgressCounter::get_trees_number()
 {
 	return trees_number;
 }

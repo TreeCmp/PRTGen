@@ -21,9 +21,62 @@ TEST(SimpleTests, AlwaysReturnsTrue) {
 	EXPECT_TRUE(true);
 }
 
-TEST(ProgressCounterTests, Returns3asNumberOfBinaryRootedTreesWith3Leaves) {
-	ProgressCounter pc(3, 0, true, true);
-	EXPECT_EQ(pc.get_trees_number(), 3);
+TEST(ProgressCounterTests, Returns4asNumberOfAllRootedTreesWith3Leaves) {
+	ProgressCounter pc(3, 0, true, false);
+	EXPECT_EQ(pc.get_trees_number(), 4);
 }
 
+TEST(ProgressCounterTests, Returns26asNumberOfAllRootedTreesWith4Leaves) {
+	ProgressCounter pc(4, 0, true, false);
+	EXPECT_EQ(pc.get_trees_number(), 26);
+}
 
+TEST(ProgressCounterTests, Returns236asNumberOfAllRootedTreesWith5Leaves) {
+	ProgressCounter pc(5, 0, true, false);
+	EXPECT_EQ(pc.get_trees_number(), 236);
+}
+
+TEST(ProgressCounterTests, Returns2752asNumberOfAllRootedTreesWith6Leaves) {
+	ProgressCounter pc(6, 0, true, false);
+	EXPECT_EQ(pc.get_trees_number(), 2752);
+}
+
+TEST(ProgressCounterTests, Returns282137824asNumberOfAllRootedTreesWith10Leaves) {
+	ProgressCounter pc(10, 0, true, false);
+	EXPECT_EQ(pc.get_trees_number(), 282137824);
+}
+
+TEST(ProgressCounterTests, Returns6939897876asNumberOfAllRootedTreesWith11Leaves) {
+	ProgressCounter pc(11, 0, true, false);
+	EXPECT_EQ(pc.get_trees_number(), 6939897856);
+}
+
+TEST(ProgressCounterTests, Returns1asNumberOfAllUnootedTreesWith3Leaves) {
+	ProgressCounter pc(3, 0, false, false);
+	EXPECT_EQ(pc.get_trees_number(), 1);
+}
+
+TEST(ProgressCounterTests, Returns4asNumberOfAllUnootedTreesWith4Leaves) {
+	ProgressCounter pc(4, 0, false, false);
+	EXPECT_EQ(pc.get_trees_number(), 4);
+}
+
+TEST(ProgressCounterTests, Returns26asNumberOfAllUnootedTreesWith5Leaves) {
+	ProgressCounter pc(5, 0, false, false);
+	EXPECT_EQ(pc.get_trees_number(), 26);
+}
+
+TEST(ProgressCounterTests, Returns236asNumberOfAllUnootedTreesWith6Leaves) {
+	ProgressCounter pc(6, 0, false, false);
+	EXPECT_EQ(pc.get_trees_number(), 236);
+}
+
+TEST(ProgressCounterTests, Returns12818912asNumberOfAllUnootedTreesWith10Leaves) {
+	ProgressCounter pc(10, 0, false, false);
+	EXPECT_EQ(pc.get_trees_number(), 12818912);
+}
+
+TEST(ProgressCounterTests, Returns282137824asNumberOfAllUnootedTreesWith11Leaves) {
+	ProgressCounter pc(11, 0, false, false);
+	EXPECT_EQ(pc.get_trees_number(), 282137824);
+}

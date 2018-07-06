@@ -5,7 +5,8 @@
 
 class ProgressCounter
 {
-	int trees_number, trees_counted, nodes_number;
+	unsigned long long trees_number, trees_counted;
+	int nodes_number;
 	double calcPassed;
 	const int interval_percent = 10;
 	clock_t clock_begin, clock_actual;
@@ -17,7 +18,7 @@ class ProgressCounter
 public:
 
 	ProgressCounter(int N, int M, bool R, bool B);
-	int get_trees_number();
+	unsigned long long get_trees_number();
 	void nextTreeCounted();
 	void showDateNadTimeNow();
 	void updateProgress(int n = 0);

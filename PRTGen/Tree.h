@@ -39,7 +39,7 @@ class Tree
 {
 public:
 
-	Node *root,  *internal;
+	Node *root;
 	deque<Edge*> edges;
 	deque<Node*> nodes;
 	static int count;

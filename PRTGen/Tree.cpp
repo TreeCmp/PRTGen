@@ -265,14 +265,6 @@ Tree*Tree::Yule(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 void Tree::All(int N, bool rooted, bool binary, ostream& file, ProgressCounter* pc)
 {
 	Tree *tree = new Tree();
-	/*
-	int count = 1;
-	for(int i = 3; i <= 2 * N - 5; i += 2)
-	count *= i;
-	if(rooted)
-	count *= 2 * N - 3;
-	file << count << endl;
-	*/
 	int *label = new int[N];
 	for (int i = 0; i < N; i++)
 		label[i] = i + 1;
@@ -282,9 +274,9 @@ void Tree::All(int N, bool rooted, bool binary, ostream& file, ProgressCounter* 
 	tree->root = new Node(label[n++]);
 	tree->nodes.push_back(tree->root);
 	Node *node = new Node(label[n++]);
+	tree->nodes.push_back(node);
 	Node::join(tree->root, node);
 	tree->edges.push_back(new Edge(tree->root, node));
-	tree->nodes.push_back(node);
 
 	tree->Explode(n, N, rooted, binary, file, label, pc);
 	if (pc) pc->updateProgress();
@@ -297,13 +289,32 @@ void Tree::Explode(int n, int N, bool rooted, bool binary, ostream& file, int *l
 {
 	if (n == N && (!rooted || !binary))
 	{
-		if (pc)
+		if (rooted && root->edges.size())
 		{
-			pc->nextTreeCounted();
-			pc->updateProgress();
+			for (int i = 0; i < nodes.size(); i++) {
+				// for all internal nodes
+				if (nodes[i]->index == 0)
+				{
+					if (pc)
+					{
+						pc->nextTreeCounted();
+						pc->updateProgress();
+					}
+					Print(nodes[i], NULL, file);
+					file << ";" << endl;
+				}
+			}
 		}
-		Print(root, NULL, file);
-		file << ";" << endl;
+		else
+		{
+			if (pc)
+			{
+				pc->nextTreeCounted();
+				pc->updateProgress();
+			}
+			Print(root, NULL, file);
+			file << ";" << endl;
+		}
 		if (!rooted) return;
 	}
 
@@ -354,7 +365,7 @@ void Tree::Explode(int n, int N, bool rooted, bool binary, ostream& file, int *l
 		edges.push_back(right);
 		nodes.push_back(root);
 
-		if (n == N && rooted)
+		if (n == N)
 		{
 			if (pc)
 			{
@@ -419,6 +430,7 @@ void Tree::Print(Node* node, Node *parent, ostream& file)
 	}
 	if (node->index > 0)
 		file << node->index;
+
 }
 
 void Tree::Delete()

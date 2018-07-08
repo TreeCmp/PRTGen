@@ -133,7 +133,7 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 		tree->edges.push_back(new Edge(inode, node));
 		tree->nodes.push_back(node);
 
-		pc->updateProgress(n);
+		if (pc) pc->updateProgress(n);
 	}
 
 	// shrink root verticle
@@ -237,7 +237,7 @@ Tree*Tree::Yule(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 		tree->edges.push_back(new Edge(inode, node));
 		tree->nodes.push_back(node);
 
-		pc->updateProgress(n);
+		if (pc) pc->updateProgress(n);
 	}
 
 	// shrink root verticle
@@ -287,7 +287,7 @@ void Tree::All(int N, bool rooted, bool binary, ostream& file, ProgressCounter* 
 	tree->nodes.push_back(node);
 
 	tree->Explode(n, N, rooted, binary, file, label, pc);
-	pc->updateProgress();
+	if (pc) pc->updateProgress();
 
 	delete[] label;
 	tree->Delete();
@@ -297,8 +297,11 @@ void Tree::Explode(int n, int N, bool rooted, bool binary, ostream& file, int *l
 {
 	if (n == N && (!rooted || !binary))
 	{
-		pc->nextTreeCounted();
-		pc->updateProgress();
+		if (pc)
+		{
+			pc->nextTreeCounted();
+			pc->updateProgress();
+		}
 		Print(root, NULL, file);
 		file << ";" << endl;
 		if (!rooted) return;
@@ -353,8 +356,11 @@ void Tree::Explode(int n, int N, bool rooted, bool binary, ostream& file, int *l
 
 		if (n == N && rooted)
 		{
-			pc->nextTreeCounted();
-			pc->updateProgress();
+			if (pc)
+			{
+				pc->nextTreeCounted();
+				pc->updateProgress();
+			}
 			Print(root, NULL, file);
 			file << ";" << endl;
 		}

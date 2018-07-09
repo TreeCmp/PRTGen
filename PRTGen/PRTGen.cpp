@@ -31,37 +31,46 @@ enum Model
 };
 
 int Node::count = 0, Edge::count = 0, Tree::count = 0;
+bool Tree::binary = true, Tree::rooted = true;
+bool Tree::printIndexes = false;
+double Tree::minSackinsIndex = 0.0, Tree::maxSackinsIndex = 1.0;
 
 class TreeGenerator
 {
 	public:
 		TreeGenerator(int N, Model model, int M, bool rooted, bool binary, float P, ostream& file)
 		{
+			Tree::N = N;
 			ProgressCounter* pc = NULL;
 			switch(model)
 			{
 				case EQUAL:
 					//file << M << endl;
 					if (&file != &cout) pc = new ProgressCounter(N, M, rooted, binary, P);
-					for(int i = 0; i < M; i++)
+					for(int i = 0; i < M;)
 					{
 						Tree *tree = Tree::Equal(N, rooted, binary, P, pc);
-						Tree::Print(tree->root, NULL, file);
-						file << ";" <<endl;
+						if (Tree::Print(tree->root, NULL, file))
+						{
+							i++;
+							if (pc) pc->nextTreeCounted();
+						}
 						tree->Delete();
-						if (pc) pc->nextTreeCounted();
+					
 					}
 					break;
 				case YULE:
 					//file << M << endl;
 					if (&file != &cout) pc = new ProgressCounter(N, M, rooted, binary, P);
-					for(int i = 0; i < M; i++)
+					for(int i = 0; i < M; )
 					{
 						Tree *tree = Tree::Yule(N, rooted, binary, P, pc);
-						Tree::Print(tree->root, NULL, file);
-						file << ";"<< endl;
+						if (Tree::Print(tree->root, NULL, file))
+						{
+							i++;
+							if (pc) pc->nextTreeCounted();
+						}
 						tree->Delete();
-						if (pc) pc->nextTreeCounted();
 					}
 					break;
 				case ALL:
@@ -112,6 +121,8 @@ void printHelp() {
 	cout << "-b - binary trees\n";
 	cout << "-a P - arbitrary trees with P propablility of multifurcation occurence\n";
 	cout << " (required 0 >= P >= 1, Yule or uniform case)\n";
+	cout << "-i - print indexes values (e.g. Sackin's index)\n";
+	cout << "-s X Y - include only trees in Sackin's index range (normalized values from 0.0-1.0 scope)\n";
 	cout << "-f X - save result to X file (default to console)\n\n";
 	cout << "With -b and without -e or -y option generates all possible binary N-leaf trees.\n";
 	cout << "With -a and without -e or -y option generates all possible arbitraty N-leaf\n";
@@ -141,9 +152,9 @@ int main(int count, char **value)
 
 	int option;
 #ifdef _WIN32
-	while ((option = getopt(count, value, L"n:e:y:ruba:f:")) != -1)
+	while ((option = getopt(count, value, L"n:e:y:ruba:is:f:")) != -1)
 #else
-	while (option = getopt (count, value, "n:e:y:ruba:f:") != -1)
+	while (option = getopt (count, value, "n:e:y:ruba:is:f:") != -1)
 #endif
 		switch(option)
 		{
@@ -171,6 +182,20 @@ int main(int count, char **value)
 			case 'a':
 				binary = false;
 				P = ATOF_FUNC(optarg);
+				break;
+			case 'i':
+				Tree::printIndexes = true;
+				break;
+			case 's':
+				Tree::minSackinsIndex = ATOF_FUNC(optarg);
+				if (optind < count && *value[optind] != '-') {
+					Tree::maxSackinsIndex = ATOF_FUNC(value[optind]);
+					optind++;
+				}
+				else {
+					cout << "-s option require TWO float numbers \n";
+					return 0;
+				}
 				break;
 			case 'f':
 				file = new ofstream(optarg);

@@ -9,6 +9,8 @@ Node::Node() : index(0) { count++; }
 
 Node::Node(int a) : index(a) { count++; }
 
+int Tree::N;
+
 void Node::join(Node *a, Node *b)
 {
 	a->edges.push_back(b);
@@ -62,7 +64,8 @@ bool Edge::pendant()
 
 Edge::~Edge() { count--; }
 
-Tree::Tree(bool rooted, bool binary, float P) {
+Tree::Tree(int N, bool rooted, bool binary, float P) {
+	this->N = N;
 	this->rooted = rooted;
 	this->binary = binary;
 	this->P = P;
@@ -77,7 +80,7 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 	std::random_device rd;  //Will be used to obtain a seed for the random number engine
 	std::default_random_engine e1(rd());
 	std::uniform_int_distribution<int> distribution(0, INT_MAX);
-	Tree *tree = new Tree(rooted, binary, P);
+	Tree *tree = new Tree(N, rooted, binary, P);
 
 	int *label = new int[N];
 	for (int i = 0; i < N; i++)
@@ -170,7 +173,7 @@ Tree*Tree::Yule(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 	std::default_random_engine e1(rd());
 	std::uniform_int_distribution<int> range_0_INTMAX_unif_int_distr(0, INT_MAX);
 	std::uniform_real_distribution<float> range_0_1_unif_float_distr(0, 1);
-	Tree *tree = new Tree(rooted, binary, P);
+	Tree *tree = new Tree(N, rooted, binary, P);
 
 	int *label = new int[N];
 	for (int i = 0; i < N; i++)
@@ -270,7 +273,7 @@ Tree*Tree::Yule(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 
 void Tree::All(int N, bool rooted, bool binary, ostream& file, int P, ProgressCounter* pc)
 {
-	Tree *tree = new Tree(rooted, binary, P);
+	Tree *tree = new Tree(N, rooted, binary, P);
 	int *label = new int[N];
 	for (int i = 0; i < N; i++)
 		label[i] = i + 1;
@@ -309,8 +312,7 @@ void Tree::Explode(int n, int N, Tree* tree, ostream& file, int *label, Progress
 					{
 						pc->nextTreeCounted();
 					}
-					Print(nodes[i], NULL, file);
-					file << ";" << endl;
+					Tree::Print(nodes[i], NULL, file);
 				}
 			}
 		}
@@ -320,8 +322,7 @@ void Tree::Explode(int n, int N, Tree* tree, ostream& file, int *label, Progress
 			{
 				pc->nextTreeCounted();
 			}
-			Print(root, NULL, file);
-			file << ";" << endl;
+			Tree::Print(root, NULL, file);
 		}
 		if (!rooted) return;
 	}
@@ -383,8 +384,7 @@ void Tree::Explode(int n, int N, Tree* tree, ostream& file, int *label, Progress
 			{
 				pc->nextTreeCounted();
 			}
-			Print(root, NULL, file);
-			file << ";" << endl;
+			Tree::Print(root, NULL, file);
 		}
 		else
 		{
@@ -425,7 +425,45 @@ void Tree::Explode(int n, int N, Tree* tree, ostream& file, int *label, Progress
 	}
 }
 
-void Tree::Print(Node* node, Node *parent, ostream& file)
+void Tree::CountSackinIndex(Node* node, Node *parent, int& sackinInd, int depth) {
+	deque<Node*> edges(node->edges);
+	Node::erase(edges, parent);
+
+	if (!edges.empty())
+	{
+		for (int i = 0; i < edges.size(); i++)
+		{
+			CountSackinIndex(edges[i], node, sackinInd, depth + 1);
+			if (i + 1 == edges.size())
+				break;
+		}
+	}
+	if (node->index > 0) {
+		sackinInd += depth;
+	}
+}
+
+bool Tree::Print(Node* node, Node *parent, ostream& file)
+{
+	int sackinInd = 0;
+	double normSackinInd = 0.0;
+	Tree::CountSackinIndex(node, NULL, sackinInd);
+	normSackinInd = (double)(sackinInd - N) / (double)(((N + N*N) / 2) - 1 - N);
+	if (Tree::minSackinsIndex <= normSackinInd && Tree::maxSackinsIndex >= normSackinInd) {
+		Tree::PrintRec(node, NULL, file);
+		file << ";";
+		if (printIndexes && Tree::rooted) {
+			file << " I_s = " << sackinInd << ", |I_s| = " << normSackinInd;
+		}
+		file << endl;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+void Tree::PrintRec(Node* node, Node *parent, ostream& file)
 {
 	deque<Node*> edges(node->edges);
 	Node::erase(edges, parent);
@@ -435,16 +473,16 @@ void Tree::Print(Node* node, Node *parent, ostream& file)
 		file << "(";
 		for (int i = 0; i < edges.size(); i++)
 		{
-			Print(edges[i], node, file);
+			PrintRec(edges[i], node, file);
 			if (i + 1 == edges.size())
 				break;
 			file << ",";
 		}
 		file << ")";
 	}
-	if (node->index > 0)
+	if (node->index > 0) {
 		file << node->index;
-
+	}
 }
 
 void Tree::Delete()

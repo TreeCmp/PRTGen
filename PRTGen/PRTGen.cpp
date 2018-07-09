@@ -38,11 +38,11 @@ class TreeGenerator
 		TreeGenerator(int N, Model model, int M, bool rooted, bool binary, float P, ostream& file)
 		{
 			ProgressCounter* pc = NULL;
-			if (&file != &cout) pc = new ProgressCounter(N, M, rooted, binary);
 			switch(model)
 			{
 				case EQUAL:
 					//file << M << endl;
+					if (&file != &cout) pc = new ProgressCounter(N, M, rooted, binary, P);
 					for(int i = 0; i < M; i++)
 					{
 						Tree *tree = Tree::Equal(N, rooted, binary, P, pc);
@@ -54,6 +54,7 @@ class TreeGenerator
 					break;
 				case YULE:
 					//file << M << endl;
+					if (&file != &cout) pc = new ProgressCounter(N, M, rooted, binary, P);
 					for(int i = 0; i < M; i++)
 					{
 						Tree *tree = Tree::Yule(N, rooted, binary, P, pc);
@@ -64,7 +65,27 @@ class TreeGenerator
 					}
 					break;
 				case ALL:
-					Tree::All(N, rooted, binary, file, pc);
+					if (!binary)
+					{
+						if (rooted)
+						{
+							if (P > N - 1)
+							{
+								cout << "Value of parameter P must be between 0 and " << N - 1 << " (N - 1) for rooted trees on " << N << " leaves" << endl;
+								return;
+							}
+						}
+						else
+						{
+							if (P > N - 2)
+							{
+								cout << "Value of parameter P must be between 0 and " << N - 2 << " (N - 2) for unrooted trees on " << N << " leaves" << endl;
+								return;
+							}
+						}
+					}
+					if (&file != &cout) pc = new ProgressCounter(N, M, rooted, binary, P);
+					Tree::All(N, rooted, binary, file, P, pc);
 					break;
 			}
 			if (pc)
@@ -89,11 +110,15 @@ void printHelp() {
 	cout << "-r - rooted trees\n";
 	cout << "-u - unrooted trees\n";
 	cout << "-b - binary trees\n";
-	cout << "-a P - arbitrary trees with P propablility of multifurcation occurence (required 0 >= P >= 1)\n";
+	cout << "-a P - arbitrary trees with P propablility of multifurcation occurence\n";
+	cout << " (required 0 >= P >= 1, Yule or uniform case)\n";
 	cout << "-f X - save result to X file (default to console)\n\n";
-	cout << "Without -e or -y option generates all possible binary arbitraty N-leaf trees\n";
-	cout << "With -a and without -e or -y option generates all possible arbitraty N-leaf trees (P value is required but will be ignored)\n";
-	cout << "By default binary rooted trees are generated\n";
+	cout << "With -b and without -e or -y option generates all possible binary N-leaf trees.\n";
+	cout << "With -a and without -e or -y option generates all possible arbitraty N-leaf\n";
+	cout <<	" trees (case with P = 0) or generates all possible arbitraty N-leaf \n";
+	cout << " trees with I internal nodes (case with P = I where, for rooted trees:\n";
+	cout << " 1 <= I <= N-1, and for unrooted trees: 1 <= I <= N-2).\n\n";
+	cout << "By default binary rooted trees are generated.\n";
 }
 
 /*********************************************************************************/

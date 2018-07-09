@@ -16,9 +16,10 @@ Phylogenetic random trees generator
   * -r - rooted trees
   * -u - unrooted trees
   * -b - binary trees
-  * -b P - arbitrary trees with P propablility of multifurcation occurence (required 0 >= P >= 1)
+  * -a P - arbitrary trees with P propablility of multifurcation occurence (required 0 >= P >= 1, Yule or uniform case)
   * -f X - save result to X file (default to console)
 
-Without -e or -y option generates all possible binary arbitraty N-leaf trees.
-With -a and without -e or -y option generates all possible arbitraty N-leaf trees (P value is required but will be ignored).
+With -b and without -e or -y option generates all possible binary arbitraty N-leaf trees.
+With -a and without -e or -y option generates all possible arbitraty N-leaf trees (case with P = 0) or generates all possible arbitraty N-leaf trees with I internal nodes (case with P = I where, for rooted trees: 1 <= I <= N-1, and for unrooted trees: 1 <= I <= N-2).
+
 By default binary rooted trees are generated.

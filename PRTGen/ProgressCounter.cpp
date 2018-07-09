@@ -31,7 +31,7 @@ static unsigned long long T(unsigned long long n, unsigned long long m)
 	return m * T(n - 1, m) + (n + m - 2) *  T(n - 1, m - 1);
 }
 
-ProgressCounter::ProgressCounter(int N, int M, bool R, bool B) {
+ProgressCounter::ProgressCounter(int N, int M, bool R, bool B, int P) {
 	nodes_number = N;
 	rooted = R;
 	binary = B;
@@ -46,9 +46,22 @@ ProgressCounter::ProgressCounter(int N, int M, bool R, bool B) {
 	else
 	{
 		trees_number = 0;
-		for (int m = 1; m < (rooted ? nodes_number : nodes_number - 1) ; m++)
+		if (rooted) {
+			for (int m = 1; m < nodes_number; m++)
+			{
+				if (!P || (P == m)) {
+					trees_number += T(nodes_number, m);
+				}
+			}
+		}
+		else
 		{
-			trees_number += T(rooted ? nodes_number : nodes_number - 1, m);
+			for (int m = 1; m < nodes_number - 1; m++)
+			{
+				if (!P || P == m) {
+					trees_number += T( nodes_number - 1, m);
+				}
+			}
 		}
 	}
 
@@ -57,7 +70,7 @@ ProgressCounter::ProgressCounter(int N, int M, bool R, bool B) {
 	showDateNadTimeNow();
 	cout << "Start of calculation...please wait..." << endl;
 	showDateNadTimeNow();
-	cout << 0.0 << "% calculations..." << endl;
+	cout << 0.0 << "% of " << trees_number << (trees_number > 1 ? " trees" : " tree") << " were generated..." << endl;
 }
 
 unsigned long long ProgressCounter::get_trees_number()
@@ -87,7 +100,7 @@ void ProgressCounter::updateProgress(int n)
 	{
 		prev_elapsed_secs = elapsed_secs;
 		showDateNadTimeNow();
-		cout << setfill('0') << fixed << setprecision(0) << calcPassed << "% calculations..." << endl;
+		cout << setfill('0') << fixed << setprecision(0) << calcPassed << "% of " << trees_number << (trees_number > 1 ? " trees" : " tree") << " were generated..." << endl;
 	}
 }
 
@@ -96,6 +109,6 @@ void ProgressCounter::finishCalsc()
 	prev_elapsed_secs = elapsed_secs;
 	elapsed_secs = double(clock_actual - clock_begin) / CLOCKS_PER_SEC;
 	showDateNadTimeNow();
-	cout << setfill('0') << fixed << setprecision(0) << calcPassed << "% calculations..." << endl;
+	cout << setfill('0') << fixed << setprecision(0) << calcPassed << "% of " << trees_number << (trees_number > 1 ? " trees" : " tree") << " were generated..." << endl;
 	cout << "generating " << trees_number << (binary ? " binary" : " unary") << (rooted ? " rooted" : " unrooted") << (trees_number > 1 ? " trees" : " tree") << " with " << nodes_number << " leves took " << elapsed_secs << " seconds" << endl;
 }

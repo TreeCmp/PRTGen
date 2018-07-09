@@ -62,7 +62,13 @@ bool Edge::pendant()
 
 Edge::~Edge() { count--; }
 
-Tree::Tree() {
+Tree::Tree(bool rooted, bool binary, float P) {
+	this->rooted = rooted;
+	this->binary = binary;
+	this->P = P;
+	this->internalNodesNumberExpected = P;
+	this->generateAllTrees = !(bool)P;
+	this->internalNodesNumber = 0;
 	count++;
 }
 
@@ -71,7 +77,7 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 	std::random_device rd;  //Will be used to obtain a seed for the random number engine
 	std::default_random_engine e1(rd());
 	std::uniform_int_distribution<int> distribution(0, INT_MAX);
-	Tree *tree = new Tree();
+	Tree *tree = new Tree(rooted, binary, P);
 
 	int *label = new int[N];
 	for (int i = 0; i < N; i++)
@@ -164,7 +170,7 @@ Tree*Tree::Yule(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 	std::default_random_engine e1(rd());
 	std::uniform_int_distribution<int> range_0_INTMAX_unif_int_distr(0, INT_MAX);
 	std::uniform_real_distribution<float> range_0_1_unif_float_distr(0, 1);
-	Tree *tree = new Tree();
+	Tree *tree = new Tree(rooted, binary, P);
 
 	int *label = new int[N];
 	for (int i = 0; i < N; i++)
@@ -262,9 +268,9 @@ Tree*Tree::Yule(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 	return tree;
 }
 
-void Tree::All(int N, bool rooted, bool binary, ostream& file, ProgressCounter* pc)
+void Tree::All(int N, bool rooted, bool binary, ostream& file, int P, ProgressCounter* pc)
 {
-	Tree *tree = new Tree();
+	Tree *tree = new Tree(rooted, binary, P);
 	int *label = new int[N];
 	for (int i = 0; i < N; i++)
 		label[i] = i + 1;
@@ -278,18 +284,22 @@ void Tree::All(int N, bool rooted, bool binary, ostream& file, ProgressCounter* 
 	Node::join(tree->root, node);
 	tree->edges.push_back(new Edge(tree->root, node));
 
-	tree->Explode(n, N, rooted, binary, file, label, pc);
+	tree->Explode(n, N, tree, file, label, pc);
 	if (pc) pc->updateProgress();
 
 	delete[] label;
 	tree->Delete();
 }
 
-void Tree::Explode(int n, int N, bool rooted, bool binary, ostream& file, int *label, ProgressCounter* pc)
+void Tree::Explode(int n, int N, Tree* tree, ostream& file, int *label, ProgressCounter* pc)
 {
+	if (pc)
+	{
+		pc->updateProgress();
+	}
 	if (n == N && (!rooted || !binary))
 	{
-		if (rooted && root->edges.size())
+		if (rooted && root->edges.size() && (generateAllTrees || internalNodesNumber == internalNodesNumberExpected))
 		{
 			for (int i = 0; i < nodes.size(); i++) {
 				// for all internal nodes
@@ -298,19 +308,17 @@ void Tree::Explode(int n, int N, bool rooted, bool binary, ostream& file, int *l
 					if (pc)
 					{
 						pc->nextTreeCounted();
-						pc->updateProgress();
 					}
 					Print(nodes[i], NULL, file);
 					file << ";" << endl;
 				}
 			}
 		}
-		else
+		else if (generateAllTrees || internalNodesNumber == internalNodesNumberExpected)
 		{
 			if (pc)
 			{
 				pc->nextTreeCounted();
-				pc->updateProgress();
 			}
 			Print(root, NULL, file);
 			file << ";" << endl;
@@ -330,7 +338,10 @@ void Tree::Explode(int n, int N, bool rooted, bool binary, ostream& file, int *l
 				Edge *second = new Edge(nodes[i], leaf);
 				edges.push_back(second);
 				nodes.push_back(leaf);
-				Explode(n + 1, N, rooted, binary, file, label, pc);
+				if ((generateAllTrees || internalNodesNumber <= internalNodesNumberExpected))
+				{
+					Explode(n + 1, N, tree, file, label, pc);
+				}
 				// remove all changes
 				nodes.pop_back();
 				edges.pop_back();
@@ -358,6 +369,7 @@ void Tree::Explode(int n, int N, bool rooted, bool binary, ostream& file, int *l
 		// add join it with two removed edge neighbours
 		Node::join(root, edge->left);
 		Node::join(root, edge->right);
+		internalNodesNumber++;
 
 		Edge *left = new Edge(root, edge->left);
 		Edge *right = new Edge(root, edge->right);
@@ -365,12 +377,11 @@ void Tree::Explode(int n, int N, bool rooted, bool binary, ostream& file, int *l
 		edges.push_back(right);
 		nodes.push_back(root);
 
-		if (n == N)
+		if (n == N && (generateAllTrees || internalNodesNumber == internalNodesNumberExpected))
 		{
 			if (pc)
 			{
 				pc->nextTreeCounted();
-				pc->updateProgress();
 			}
 			Print(root, NULL, file);
 			file << ";" << endl;
@@ -383,9 +394,10 @@ void Tree::Explode(int n, int N, bool rooted, bool binary, ostream& file, int *l
 			Edge *third = new Edge(root, leaf);
 			edges.push_back(third);
 			nodes.push_back(leaf);
-
-			Explode(n + 1, N, rooted, binary, file, label, pc);
-
+			if ((generateAllTrees || internalNodesNumber <= internalNodesNumberExpected))
+			{
+				Explode(n + 1, N, tree, file, label, pc);
+			}
 			nodes.pop_back();
 			edges.pop_back();
 			delete third;
@@ -405,6 +417,8 @@ void Tree::Explode(int n, int N, bool rooted, bool binary, ostream& file, int *l
 
 		delete root;
 		root = node;
+
+		internalNodesNumber--;
 
 		Node::join(edge->left, edge->right);
 		edges.insert(edges.begin() + i, edge);

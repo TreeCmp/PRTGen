@@ -453,7 +453,7 @@ bool Tree::Print(Node* node, Node *parent, ostream& file)
 		Tree::PrintRec(node, NULL, file);
 		file << ";";
 		if (printIndexes && Tree::rooted) {
-			file << " I_s = " << sackinInd << ", |I_s| = " << normSackinInd;
+			file << " I_s = " << sackinInd << "; |I_s| = " << normSackinInd;
 		}
 		file << endl;
 		return true;

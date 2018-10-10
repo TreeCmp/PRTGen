@@ -67,7 +67,7 @@ bool Edge::pendant()
 Edge::~Edge() { count--; }
 
 
-void Tree::countSum() {
+void Tree::CountSum() {
 	Tree::sum = 0.0;
 	for (int j = 2; j <= Tree::N; j++) Tree::sum += 1.0 / j;
 	return;
@@ -81,7 +81,6 @@ Tree::Tree(int N, bool rooted, bool binary, float P) {
 	this->internalNodesNumberExpected = P;
 	this->generateAllTrees = !(bool)P;
 	this->internalNodesNumber = 0;
-	countSum();
 	count++;
 }
 
@@ -460,8 +459,8 @@ double Tree::NormalizeSackinIndex(int sackinInd)
 	case 'n':
 		return (double)2*(sackinInd - N) / ((N * N) - N - 2);
 	case 'y':
-		return (double)(sackinInd - 2 * N * Tree::sum) / N;
-	case 'p':
+		return (double)((double)sackinInd - 2.0 * N * Tree::sum) / N;
+	case 'e':
 		return (double)sackinInd / (double)pow(N, 1.5);
 	}
 }

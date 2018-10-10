@@ -33,7 +33,7 @@ enum Model
 int Node::count = 0, Edge::count = 0, Tree::count = 0;
 bool Tree::binary = true, Tree::rooted = true;
 bool Tree::printIndexes = false;
-double Tree::minSackinsIndex, Tree::maxSackinsIndex = 1.0;
+double Tree::minSackinsIndex = DBL_MIN, Tree::maxSackinsIndex = DBL_MAX;
 char Tree::sackin_norm_model = 'n';
 
 class TreeGenerator
@@ -43,6 +43,7 @@ class TreeGenerator
 		{
 			Tree::N = N;
 			ProgressCounter* pc = NULL;
+			Tree::CountSum();
 			switch(model)
 			{
 				case EQUAL:
@@ -61,7 +62,7 @@ class TreeGenerator
 					}
 					break;
 				case YULE:
-					//file << M << endl;
+					//file << M << endl;					
 					if (&file != &cout) pc = new ProgressCounter(N, M, rooted, binary, P);
 					for(int i = 0; i < M; )
 					{
@@ -125,7 +126,7 @@ void printHelp() {
 	cout << "-i - print indexes values (e.g. Sackin's index)\n";
 	cout << "-s n X Y - include only trees in Sackin's index range (normalized values from 0.0-1.0 scope)\n";
 	cout << "-s y X Y - include only trees in Sackin's index range (Yule reference model normalized values)\n";
-	cout << "-s p X Y - include only trees in Sackin's index range (PDA reference model normalized values)\n";
+	cout << "-s e X Y - include only trees in Sackin's index range (uniform reference model normalized values)\n";
 	cout << "-f X - save result to X file (default to console)\n\n";
 	cout << "With -b and without -e or -y option generates all possible binary N-leaf trees.\n";
 	cout << "With -a and without -e or -y option generates all possible arbitraty N-leaf\n";
@@ -167,11 +168,12 @@ int main(int count, char **value)
 				break;
 			case 'e':
 				model = EQUAL;
+				Tree::sackin_norm_model = 'e';
 				M = ATOI_FUNC(optarg);
-
 				break;
 			case 'y':
 				model = YULE;
+				Tree::sackin_norm_model = 'y';
 				M = ATOI_FUNC(optarg);
 				break;
 			case 'r':

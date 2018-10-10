@@ -37,7 +37,6 @@ public:
 
 class Tree
 {
-	static void countSum();
 
 public:
 
@@ -66,6 +65,7 @@ public:
 	static void CountSackinIndex(Node* node, Node *parent, int& sackinInd, int depth = 0);
 	static double NormalizeSackinIndex(int sackinInd);
 	static void PrintRec(Node* node, Node *parent, ostream& file);
+	static void CountSum();
 	void Delete();
 	~Tree();
 };

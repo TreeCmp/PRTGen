@@ -112,3 +112,8 @@ void ProgressCounter::finishCalsc()
 	cout << setfill('0') << fixed << setprecision(0) << calcPassed << "% of " << trees_number << (trees_number > 1 ? " trees" : " tree") << " were generated..." << endl;
 	cout << "generating " << trees_number << (binary ? " binary" : " unary") << (rooted ? " rooted" : " unrooted") << (trees_number > 1 ? " trees" : " tree") << " with " << nodes_number << " leves took " << elapsed_secs << " seconds" << endl;
 }
+
+void  ProgressCounter::resetElapsed_secs()
+{
+	clock_begin = clock();
+}

@@ -61,7 +61,7 @@ public:
 	static Tree* Yule(int N, bool rooted, bool binary, float P, ProgressCounter* pc);
 	static void All(int N, bool rooted, bool binary, ostream& file, int P, ProgressCounter* pc);
 	void Explode(int n, int N, Tree* tree, ostream& file, int *label, ProgressCounter* pc);
-	static bool Print(Node* node, Node *parent, ostream& file);
+	static bool Print(Node* node, Node *parent, ostream& file, ProgressCounter* pc);
 	static void CountSackinIndex(Node* node, Node *parent, int& sackinInd, int depth = 0);
 	static double NormalizeSackinIndex(int sackinInd);
 	static void PrintRec(Node* node, Node *parent, ostream& file);

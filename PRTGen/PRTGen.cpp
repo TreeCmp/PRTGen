@@ -52,7 +52,7 @@ class TreeGenerator
 					for(int i = 0; i < M;)
 					{
 						Tree *tree = Tree::Equal(N, rooted, binary, P, pc);
-						if (Tree::Print(tree->root, NULL, file))
+						if (Tree::Print(tree->root, NULL, file, pc))
 						{
 							i++;
 							if (pc) pc->nextTreeCounted();
@@ -67,7 +67,7 @@ class TreeGenerator
 					for(int i = 0; i < M; )
 					{
 						Tree *tree = Tree::Yule(N, rooted, binary, P, pc);
-						if (Tree::Print(tree->root, NULL, file))
+						if (Tree::Print(tree->root, NULL, file, pc))
 						{
 							i++;
 							if (pc) pc->nextTreeCounted();
@@ -124,9 +124,9 @@ void printHelp() {
 	cout << "-a P - arbitrary trees with P propablility of multifurcation occurence\n";
 	cout << " (required 0 >= P >= 1, Yule or uniform case)\n";
 	cout << "-i - print indexes values (e.g. Sackin's index)\n";
-	cout << "-s n X Y - include only trees in Sackin's index range (normalized values from 0.0-1.0 scope)\n";
-	cout << "-s y X Y - include only trees in Sackin's index range (Yule reference model normalized values)\n";
-	cout << "-s e X Y - include only trees in Sackin's index range (uniform reference model normalized values)\n";
+	cout << "-sn X Y - include only trees in Sackin's index range (normalized values from 0.0-1.0 scope)\n";
+	cout << "-sy X Y - include only trees in Sackin's index range (Yule reference model normalized values)\n";
+	cout << "-se X Y - include only trees in Sackin's index range (uniform reference model normalized values)\n";
 	cout << "-f X - save result to X file (default to console)\n\n";
 	cout << "With -b and without -e or -y option generates all possible binary N-leaf trees.\n";
 	cout << "With -a and without -e or -y option generates all possible arbitraty N-leaf\n";
@@ -203,7 +203,7 @@ int main(int count, char **value)
 					optind++;
 				}
 				else {
-					cout << "-s option require TWO float numbers \n";
+					cout << "-s? option require TWO float numbers \n";
 					return 0;
 				}
 				break;

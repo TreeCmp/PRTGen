@@ -321,7 +321,7 @@ void Tree::Explode(int n, int N, Tree* tree, ostream& file, int *label, Progress
 					{
 						pc->nextTreeCounted();
 					}
-					Tree::Print(nodes[i], NULL, file);
+					Tree::Print(nodes[i], NULL, file, pc);
 				}
 			}
 		}
@@ -331,7 +331,7 @@ void Tree::Explode(int n, int N, Tree* tree, ostream& file, int *label, Progress
 			{
 				pc->nextTreeCounted();
 			}
-			Tree::Print(root, NULL, file);
+			Tree::Print(root, NULL, file, pc);
 		}
 		if (!rooted) return;
 	}
@@ -393,7 +393,7 @@ void Tree::Explode(int n, int N, Tree* tree, ostream& file, int *label, Progress
 			{
 				pc->nextTreeCounted();
 			}
-			Tree::Print(root, NULL, file);
+			Tree::Print(root, NULL, file, pc);
 		}
 		else
 		{
@@ -465,7 +465,7 @@ double Tree::NormalizeSackinIndex(int sackinInd)
 	}
 }
 
-bool Tree::Print(Node* node, Node *parent, ostream& file)
+bool Tree::Print(Node* node, Node *parent, ostream& file, ProgressCounter* pc)
 {
 	int sackinInd = 0;
 	double normSackinInd = 0.0;
@@ -482,6 +482,10 @@ bool Tree::Print(Node* node, Node *parent, ostream& file)
 		return true;
 	}
 	else {
+		pc->resetElapsed_secs();
+		if (Tree::minSackinsIndex <= normSackinInd) cout << "rejected due to too high sackine index value = " << normSackinInd;
+		else cout << "rejected due to too low sackine index value = " << normSackinInd;
+		cout << endl;
 		return false;
 	}
 }

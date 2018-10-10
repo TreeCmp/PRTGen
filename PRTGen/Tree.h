@@ -37,6 +37,8 @@ public:
 
 class Tree
 {
+	static void countSum();
+
 public:
 
 	static int N;
@@ -52,6 +54,8 @@ public:
 	static int count;
 	static bool printIndexes;
 	static double minSackinsIndex, maxSackinsIndex;
+	static char sackin_norm_model;
+	static double sum;
 
 	Tree(int N, bool rooted, bool binary, float P);
 	static Tree* Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc);
@@ -60,6 +64,7 @@ public:
 	void Explode(int n, int N, Tree* tree, ostream& file, int *label, ProgressCounter* pc);
 	static bool Print(Node* node, Node *parent, ostream& file);
 	static void CountSackinIndex(Node* node, Node *parent, int& sackinInd, int depth = 0);
+	static double NormalizeSackinIndex(int sackinInd);
 	static void PrintRec(Node* node, Node *parent, ostream& file);
 	void Delete();
 	~Tree();

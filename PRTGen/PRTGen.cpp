@@ -33,7 +33,8 @@ enum Model
 int Node::count = 0, Edge::count = 0, Tree::count = 0;
 bool Tree::binary = true, Tree::rooted = true;
 bool Tree::printIndexes = false;
-double Tree::minSackinsIndex = 0.0, Tree::maxSackinsIndex = 1.0;
+double Tree::minSackinsIndex, Tree::maxSackinsIndex = 1.0;
+char Tree::sackin_norm_model = 'n';
 
 class TreeGenerator
 {
@@ -122,7 +123,9 @@ void printHelp() {
 	cout << "-a P - arbitrary trees with P propablility of multifurcation occurence\n";
 	cout << " (required 0 >= P >= 1, Yule or uniform case)\n";
 	cout << "-i - print indexes values (e.g. Sackin's index)\n";
-	cout << "-s X Y - include only trees in Sackin's index range (normalized values from 0.0-1.0 scope)\n";
+	cout << "-s n X Y - include only trees in Sackin's index range (normalized values from 0.0-1.0 scope)\n";
+	cout << "-s y X Y - include only trees in Sackin's index range (Yule reference model normalized values)\n";
+	cout << "-s p X Y - include only trees in Sackin's index range (PDA reference model normalized values)\n";
 	cout << "-f X - save result to X file (default to console)\n\n";
 	cout << "With -b and without -e or -y option generates all possible binary N-leaf trees.\n";
 	cout << "With -a and without -e or -y option generates all possible arbitraty N-leaf\n";
@@ -151,6 +154,7 @@ int main(int count, char **value)
 	ofstream *file = NULL;
 
 	int option;
+
 #ifdef _WIN32
 	while ((option = getopt(count, value, L"n:e:y:ruba:is:f:")) != -1)
 #else
@@ -187,7 +191,11 @@ int main(int count, char **value)
 				Tree::printIndexes = true;
 				break;
 			case 's':
-				Tree::minSackinsIndex = ATOF_FUNC(optarg);
+				Tree::sackin_norm_model = *optarg;
+				if (optind < count && *value[optind] != '-') {
+					Tree::minSackinsIndex = ATOF_FUNC(value[optind]);
+					optind++;
+				}
 				if (optind < count && *value[optind] != '-') {
 					Tree::maxSackinsIndex = ATOF_FUNC(value[optind]);
 					optind++;

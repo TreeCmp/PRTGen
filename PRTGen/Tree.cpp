@@ -1,5 +1,6 @@
 #include <deque>
 #include <random>
+#include <math.h>
 #include "Tree.h"
 #include "ProgressCounter.h"
 
@@ -10,6 +11,7 @@ Node::Node() : index(0) { count++; }
 Node::Node(int a) : index(a) { count++; }
 
 int Tree::N;
+double Tree::sum;
 
 void Node::join(Node *a, Node *b)
 {
@@ -64,6 +66,13 @@ bool Edge::pendant()
 
 Edge::~Edge() { count--; }
 
+
+void Tree::countSum() {
+	Tree::sum = 0.0;
+	for (int j = 2; j <= Tree::N; j++) Tree::sum += 1.0 / j;
+	return;
+}
+
 Tree::Tree(int N, bool rooted, bool binary, float P) {
 	this->N = N;
 	this->rooted = rooted;
@@ -72,6 +81,7 @@ Tree::Tree(int N, bool rooted, bool binary, float P) {
 	this->internalNodesNumberExpected = P;
 	this->generateAllTrees = !(bool)P;
 	this->internalNodesNumber = 0;
+	countSum();
 	count++;
 }
 
@@ -443,12 +453,26 @@ void Tree::CountSackinIndex(Node* node, Node *parent, int& sackinInd, int depth)
 	}
 }
 
+double Tree::NormalizeSackinIndex(int sackinInd)
+{
+	switch (Tree::sackin_norm_model)
+	{
+	case 'n':
+		return (double)2*(sackinInd - N) / ((N * N) - N - 2);
+	case 'y':
+		return (double)(sackinInd - 2 * N * Tree::sum) / N;
+	case 'p':
+		return (double)sackinInd / (double)pow(N, 1.5);
+	}
+}
+
 bool Tree::Print(Node* node, Node *parent, ostream& file)
 {
 	int sackinInd = 0;
 	double normSackinInd = 0.0;
 	Tree::CountSackinIndex(node, NULL, sackinInd);
-	normSackinInd = (double)(sackinInd - N) / (double)(((N + N*N) / 2) - 1 - N);
+	normSackinInd = Tree::NormalizeSackinIndex(sackinInd);
+
 	if (Tree::minSackinsIndex <= normSackinInd && Tree::maxSackinsIndex >= normSackinInd) {
 		Tree::PrintRec(node, NULL, file);
 		file << ";";

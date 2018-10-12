@@ -6,23 +6,33 @@
 
 using namespace std;
 
-Node::Node() : index(0) { count++; }
+Node::Node(Node* parent) : index(0), siblingNumber(0)
+{
+	this->parent = parent;
+	count++;
+}
 
-Node::Node(int a) : index(a) { count++; }
+Node::Node(int a, Node* parent) : index(a), siblingNumber(0)
+{
+	this->parent = parent;
+	count++;
+}
 
 int Tree::N;
 double Tree::sum;
 
-void Node::join(Node *a, Node *b)
+void Node::join(Node *parent, Node *child)
 {
-	a->edges.push_back(b);
-	b->edges.push_back(a);
+	parent->edges.push_back(child);
+	child->edges.push_back(parent);
+	child->parent = parent;
 }
 
-void Node::separate(Node *a, Node *b)
+void Node::separate(Node *parent, Node *child)
 {
-	Node::erase(a->edges, b);
-	Node::erase(b->edges, a);
+	Node::erase(parent->edges, child);
+	Node::erase(child->edges, parent);
+	child->parent = NULL;
 }
 
 void Node::erase(deque<Node*>& edges, Node *a)
@@ -37,12 +47,12 @@ void Node::erase(deque<Node*>& edges, Node *a)
 
 Node::~Node() { count--; }
 
-Edge::Edge(Node *a, Node *b) : left(a), right(b) { count++; }
+Edge::Edge(Node *a, Node *b) : parent(a), child(b) { count++; }
 
 void Edge::erase(deque<Edge*>& edges, Node *n)
 {
 	for (int i = 0; i < edges.size(); i++)
-		if (edges[i]->left == n || edges[i]->right == n)
+		if (edges[i]->parent == n || edges[i]->child == n)
 		{
 			edges.erase(edges.begin() + i);
 			return;
@@ -61,7 +71,7 @@ void Edge::erase(deque<Edge*>& edges, Edge *e)
 
 bool Edge::pendant()
 {
-	return (left->index > 0) || (right->index > 0);
+	return (parent->index > 0) || (child->index > 0);
 }
 
 Edge::~Edge() { count--; }
@@ -73,6 +83,16 @@ void Tree::CountSum() {
 	return;
 }
 
+void Tree::CountExtremeSackinIndexValues(int n)
+{
+	// sackin index value growth after attaching current tree and balanced tree build of remaining nodes to root
+	// equals current tree nodes number + remaining nodes number * balanced tree height + numbre of leaves at a height+1 * 2
+	this->remainingBalancedTreeCaseValue = n + (N - n) * floor(log2(N - n)) + ((N - n) - pow(2,floor(log2(N - n))) * 2);
+	// sackin index value growth after attaching current tree to caterpillar at N - n vertices
+	// equals sackin index for caterpillar without one leg at (N - n) vertices + caterpillar length * n 
+	this->remainingCaterpillarCaseValue = (((N - n) * (N - n) + (N - n)) / 2 ) + (N - n) * n;
+}
+
 Tree::Tree(int N, bool rooted, bool binary, float P) {
 	this->N = N;
 	this->rooted = rooted;
@@ -81,6 +101,8 @@ Tree::Tree(int N, bool rooted, bool binary, float P) {
 	this->internalNodesNumberExpected = P;
 	this->generateAllTrees = !(bool)P;
 	this->internalNodesNumber = 0;
+	this->sackinIndexValue = 0;
+	//CountExtremeSackinIndexValues(0);
 	count++;
 }
 
@@ -100,12 +122,18 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 	tree->root = new Node();
 	tree->nodes.push_back(tree->root);
 	// create two initial vertices and join them with root
-	Node *node, *inode;
+	Node *node, *inode, *tmpnode;
 	for (int i = 0; i < 2; i++) {
-		node = new Node(label[n++]);
+		node = new Node(label[n++], tree->root);
 		tree->nodes.push_back(node);
 		Node::join(tree->root, node);
 		tree->edges.push_back(new Edge(tree->root, node));
+	}
+	// Sackin index is defined only for rooted trees
+	if (tree->rooted)
+	{
+		tree->root->siblingNumber = 2;
+		tree->sackinIndexValue = 2;
 	}
 
 	while (true)
@@ -125,24 +153,65 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 
 			// remove taken edge
 			Edge::erase(tree->edges, edge);
-			Node::erase(edge->left->edges, edge->right);
-			Node::erase(edge->right->edges, edge->left);
+			Node::erase(edge->parent->edges, edge->child);
+			Node::erase(edge->child->edges, edge->parent);
 
 			// add new internal vertex
 			inode = new Node();
 			tree->nodes.push_back(inode);
 
 			// add two edges betwen new internal vertex and removed edge neighbours
-			Node::join(inode, edge->left);
-			tree->edges.push_back(new Edge(inode, edge->left));
-			Node::join(inode, edge->right);
-			tree->edges.push_back(new Edge(inode, edge->right));
-
-			delete edge;
+			Node::join(edge->parent, inode);
+			tree->edges.push_back(new Edge(edge->parent, inode));
+			Node::join(inode, edge->child);
+			tree->edges.push_back(new Edge(inode, edge->child));
 		}
 		// otherwise, multifurcation will be added
 		else {
-			inode = edge->left;
+			inode = edge->parent;
+		}
+
+		if (rooted)
+		{
+			// compute new internal vertex siblingsNumber value
+			inode->siblingNumber = edge->child->siblingNumber + 1;
+			// Sackin index value update
+			tree->sackinIndexValue += inode->siblingNumber;
+
+			// increment all ancestors siblingsNumber and sackinIndexValue
+			tmpnode = edge->parent;
+			while (tmpnode != tree->root)
+			{
+				tmpnode->siblingNumber++;
+				tmpnode = tmpnode->parent;
+				tree->sackinIndexValue++;
+			}
+			tree->root->siblingNumber++;
+			tree->sackinIndexValue+=2;
+
+			// Update extreme Sackin index values
+
+
+			// check that value of the sarcine index is within proper range
+			tree->CountExtremeSackinIndexValues(n+1);
+			if (Tree::NormalizeSackinIndex(tree->sackinIndexValue + tree->remainingBalancedTreeCaseValue) > Tree::maxSackinsIndex)
+			{
+				//pc->resetElapsed_secs();
+				//cout << "Rejected due to sackin index value = " << Tree::NormalizeSackinIndex(tree->sackinIndexValue + tree->remainingBalancedTreeCaseValue) << " > " << Tree::maxSackinsIndex << endl;
+				tree->Delete();
+				delete edge;
+				delete[] label;
+				return NULL;
+			}
+			if (Tree::NormalizeSackinIndex(tree->sackinIndexValue + tree->remainingCaterpillarCaseValue) < Tree::minSackinsIndex)
+			{
+				//pc->resetElapsed_secs();
+				//cout << "Rejected due to sackin index value = " << Tree::NormalizeSackinIndex(tree->sackinIndexValue + tree->remainingCaterpillarCaseValue) << " < " << Tree::minSackinsIndex << endl;
+				tree->Delete();
+				delete edge;
+				delete[] label;
+				return NULL;
+			}
 		}
 
 		// create new vertex
@@ -152,6 +221,7 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 		tree->nodes.push_back(node);
 
 		if (pc) pc->updateProgress(n);
+		delete edge;
 	}
 
 	// shrink root verticle
@@ -229,24 +299,24 @@ Tree*Tree::Yule(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 
 			// remove taken edge
 			Edge::erase(tree->edges, edge);
-			Node::erase(edge->left->edges, edge->right);
-			Node::erase(edge->right->edges, edge->left);
+			Node::erase(edge->parent->edges, edge->child);
+			Node::erase(edge->child->edges, edge->parent);
 
 			// add new internal vertex
 			inode = new Node();
 			tree->nodes.push_back(inode);
 
 			// add two edges betwen new internal vertex and removed edge neighbours
-			Node::join(inode, edge->left);
-			tree->edges.push_back(new Edge(inode, edge->left));
-			Node::join(inode, edge->right);
-			tree->edges.push_back(new Edge(inode, edge->right));
+			Node::join(inode, edge->parent);
+			tree->edges.push_back(new Edge(inode, edge->parent));
+			Node::join(inode, edge->child);
+			tree->edges.push_back(new Edge(inode, edge->child));
 
 			delete edge;
 		}
 		// otherwise, multifurcation will be added
 		else {
-			inode = edge->left;
+			inode = edge->parent;
 		}
 
 		// create new vertex
@@ -369,20 +439,20 @@ void Tree::Explode(int n, int N, Tree* tree, ostream& file, int *label, Progress
 
 		// remove edge
 		Edge::erase(edges, edge);
-		Node::erase(edge->left->edges, edge->right);
-		Node::erase(edge->right->edges, edge->left);
+		Node::erase(edge->parent->edges, edge->child);
+		Node::erase(edge->child->edges, edge->parent);
 
 		// create new internal verticle
 		Node *node = root;
 		root = new Node();
 
 		// add join it with two removed edge neighbours
-		Node::join(root, edge->left);
-		Node::join(root, edge->right);
+		Node::join(root, edge->parent);
+		Node::join(root, edge->child);
 		internalNodesNumber++;
 
-		Edge *left = new Edge(root, edge->left);
-		Edge *right = new Edge(root, edge->right);
+		Edge *left = new Edge(root, edge->parent);
+		Edge *right = new Edge(root, edge->child);
 		edges.push_back(left);
 		edges.push_back(right);
 		nodes.push_back(root);
@@ -421,15 +491,15 @@ void Tree::Explode(int n, int N, Tree* tree, ostream& file, int *label, Progress
 		delete left;
 		delete right;
 
-		Node::erase(edge->left->edges, root);
-		Node::erase(edge->right->edges, root);
+		Node::erase(edge->parent->edges, root);
+		Node::erase(edge->child->edges, root);
 
 		delete root;
 		root = node;
 
 		internalNodesNumber--;
 
-		Node::join(edge->left, edge->right);
+		Node::join(edge->parent, edge->child);
 		edges.insert(edges.begin() + i, edge);
 	}
 }
@@ -482,9 +552,10 @@ bool Tree::Print(Node* node, Node *parent, ostream& file, ProgressCounter* pc)
 		return true;
 	}
 	else {
+		throw "wrongly filtered tree";
 		pc->resetElapsed_secs();
-		if (Tree::minSackinsIndex <= normSackinInd) cout << "rejected due to too high sackine index value = " << normSackinInd;
-		else cout << "rejected due to too low sackine index value = " << normSackinInd;
+		if (Tree::minSackinsIndex <= normSackinInd) cout << "rejected due to too high sackin index value = " << normSackinInd;
+		else cout << "rejected due to too low sackin index value = " << normSackinInd;
 		cout << endl;
 		return false;
 	}
@@ -509,6 +580,12 @@ void Tree::PrintRec(Node* node, Node *parent, ostream& file)
 	}
 	if (node->index > 0) {
 		file << node->index;
+	}
+	else
+	{
+		file << "(";
+		file << node->siblingNumber;
+		file << "(";
 	}
 }
 

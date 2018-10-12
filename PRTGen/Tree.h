@@ -9,12 +9,15 @@ class Node
 {
 public:
 
+	// labels from 1 to N, internal nodes index equals 0
 	int index;
 	deque<Node*> edges;
+	Node* parent;
+	int siblingNumber;
 	static int count;
 
-	Node();
-	Node(int a);
+	Node(Node* = NULL);
+	Node(int a, Node* = NULL);
 	static void join(Node *a, Node *b);
 	static void separate(Node *a, Node *b);
 	static void erase(deque<Node*>& edges, Node *a);
@@ -25,7 +28,7 @@ class Edge
 {
 public:
 
-	Node *left, *right;
+	Node *parent, *child;
 	static int count;
 
 	Edge(Node *a, Node *b);
@@ -48,6 +51,9 @@ public:
 	bool generateAllTrees;
 	int internalNodesNumberExpected;
 	int internalNodesNumber;
+	int sackinIndexValue;
+	int remainingCaterpillarCaseValue;
+	int remainingBalancedTreeCaseValue;
 	static bool rooted;
 	static bool binary;
 	static int count;
@@ -57,6 +63,7 @@ public:
 	static double sum;
 
 	Tree(int N, bool rooted, bool binary, float P);
+	void CountExtremeSackinIndexValues(int n);
 	static Tree* Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc);
 	static Tree* Yule(int N, bool rooted, bool binary, float P, ProgressCounter* pc);
 	static void All(int N, bool rooted, bool binary, ostream& file, int P, ProgressCounter* pc);

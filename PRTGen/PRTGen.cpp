@@ -52,12 +52,20 @@ class TreeGenerator
 					for(int i = 0; i < M;)
 					{
 						Tree *tree = Tree::Equal(N, rooted, binary, P, pc);
-						if (Tree::Print(tree->root, NULL, file, pc))
+
+						// Print root children count and Sackin index value (only for debuging)
+						//cout << "Root has = " << tree->root->siblingNumber << " children" << endl;
+						//cout << "Sackin index = " << tree->sackinIndexValue << endl;
+
+						if (tree && Tree::Print(tree->root, NULL, file, pc))
 						{
 							i++;
 							if (pc) pc->nextTreeCounted();
 						}
-						tree->Delete();
+						if (tree)
+						{
+							tree->Delete();
+						}
 					
 					}
 					break;

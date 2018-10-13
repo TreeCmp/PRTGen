@@ -581,12 +581,6 @@ void Tree::PrintRec(Node* node, Node *parent, ostream& file)
 	if (node->index > 0) {
 		file << node->index;
 	}
-	else
-	{
-		file << "(";
-		file << node->siblingNumber;
-		file << "(";
-	}
 }
 
 void Tree::Delete()

@@ -72,6 +72,10 @@ class TreeGenerator
 						{
 							tree->ClearAndDelete();
 						}
+						else
+						{
+							if (pc) pc->nextTreeRejected();
+						}
 					}
 					break;
 				case YULE:
@@ -87,7 +91,14 @@ class TreeGenerator
 							i++;
 							if (pc) pc->nextTreeCounted();
 						}
-						tree->ClearAndDelete();
+						if (tree)
+						{
+							tree->ClearAndDelete();
+						}
+						else
+						{
+							if (pc) pc->nextTreeRejected();
+						}
 					}
 					break;
 				case ALL:

@@ -228,6 +228,7 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 				//cout << "Rejected due to sackin index value = " << Tree::NormalizeSackinIndex(tree->sackinIndexValue + tree->remainingBalancedTreeCaseValue) << " > " << Tree::maxSackinsIndex << endl;
 				tree->ClearAndDelete();
 				delete[] label;
+				if (pc) pc->updateProgress(n);
 				return NULL;
 			}
 			if (Tree::NormalizeSackinIndex(tree->sackinIndexValue + tree->remainingCaterpillarCaseValue) < Tree::minSackinsIndex)
@@ -236,6 +237,7 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 				//cout << "Rejected due to sackin index value = " << Tree::NormalizeSackinIndex(tree->sackinIndexValue + tree->remainingCaterpillarCaseValue) << " < " << Tree::minSackinsIndex << endl;
 				tree->ClearAndDelete();
 				delete[] label;
+				if (pc) pc->updateProgress(n);
 				return NULL;
 			}
 		}

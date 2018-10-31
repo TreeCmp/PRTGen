@@ -66,11 +66,13 @@ ProgressCounter::ProgressCounter(int N, int M, bool R, bool B, int P) {
 	}
 
 	trees_counted = 0;
+	trees_rejected = 0;
 	clock_begin = clock();
 	showDateNadTimeNow();
 	cout << "Start of calculation...please wait..." << endl;
 	showDateNadTimeNow();
-	cout << 0.0 << "% of " << trees_number << (trees_number > 1 ? " trees" : " tree") << " were generated..." << endl;
+	updateProgress(0, true);
+	//cout << 0.0 << "% of " << trees_number << (trees_number > 1 ? " trees" : " tree") << " were generated..." << endl;
 }
 
 unsigned long long ProgressCounter::get_trees_number()
@@ -83,6 +85,11 @@ void ProgressCounter::nextTreeCounted()
 	trees_counted++;
 }
 
+void ProgressCounter::nextTreeRejected()
+{
+	trees_rejected++;
+}
+
 void ProgressCounter::showDateNadTimeNow() {
 	std::time_t t = std::time(0);   // get time now
 	std::tm* now = std::localtime(&t);
@@ -90,17 +97,19 @@ void ProgressCounter::showDateNadTimeNow() {
 		<< setfill('0') << setw(2) << now->tm_hour << ":" << setfill('0') << setw(2) << now->tm_min << ":" << setfill('0') << setw(2) << now->tm_sec << ": ";
 }
 
-void ProgressCounter::updateProgress(int n)
+void ProgressCounter::updateProgress(int n, bool showUnconditionally)
 {
 	clock_actual = clock();
 	elapsed_secs = double(clock_actual - clock_begin) / CLOCKS_PER_SEC;
 	calcPassed = 100 * (trees_counted / static_cast<double>(trees_number) + n / static_cast<double>(nodes_number) / static_cast<double>(trees_number));
 
-	if (elapsed_secs - prev_elapsed_secs > interval_secs)
+	if (showUnconditionally || elapsed_secs - prev_elapsed_secs > interval_secs)
 	{
 		prev_elapsed_secs = elapsed_secs;
 		showDateNadTimeNow();
-		cout << setfill('0') << fixed << setprecision(0) << calcPassed << "% of " << trees_number << (trees_number > 1 ? " trees" : " tree") << " were generated..." << endl;
+		cout << setfill('0') << fixed << setprecision(0) << calcPassed << "% of " << trees_number << (trees_number > 1 ? " trees" : " tree") << " were generated";
+		if (trees_rejected) cout << ", " << trees_rejected << (trees_rejected > 1 ? " trees" : " tree") << " were rejected";
+		cout << " ..." << endl;
 	}
 }
 

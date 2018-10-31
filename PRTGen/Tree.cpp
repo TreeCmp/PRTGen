@@ -201,6 +201,7 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 			inode = edge->parent;
 		}
 
+		//cutting off unnecessary calculations
 		if (rooted)
 		{
 			// compute new internal vertex siblingsNumber value
@@ -222,6 +223,8 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 			// Update extreme Sackin index values
 			// check that value of the sarcine index is within proper range
 			tree->CountExtremeSackinIndexValues(n+1);
+			//todo: improve the Sackin index for the case of an optimally balanced tree
+			/*
 			if (Tree::NormalizeSackinIndex(tree->sackinIndexValue + tree->remainingBalancedTreeCaseValue) > Tree::maxSackinsIndex)
 			{
 				//pc->resetElapsed_secs();
@@ -231,6 +234,7 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 				if (pc) pc->updateProgress(n);
 				return NULL;
 			}
+			*/
 			if (Tree::NormalizeSackinIndex(tree->sackinIndexValue + tree->remainingCaterpillarCaseValue) < Tree::minSackinsIndex)
 			{
 				//pc->resetElapsed_secs();
@@ -585,6 +589,7 @@ bool Tree::Print(Node* node, Node *parent, ostream& file, ProgressCounter* pc)
 		//if (Tree::minSackinsIndex <= normSackinInd) cout << "rejected due to too high sackin index value = " << normSackinInd;
 		//else cout << "rejected due to too low sackin index value = " << normSackinInd;
 		//cout << endl;
+		if (pc) pc->nextTreeRejected();
 		return false;
 	}
 }

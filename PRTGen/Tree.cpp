@@ -123,8 +123,13 @@ void Tree::CountSum() {
 void Tree::CountExtremeSackinIndexValues(int n)
 {
 	// sackin index value growth after attaching current tree and balanced tree build of remaining nodes to root
+	// todo bad estimation
 	// equals current tree nodes number + remaining nodes number * balanced tree height + numbre of leaves at a height+1 * 2
-	this->remainingBalancedTreeCaseValue = n + (N - n) * floor(log2(N - n)) + ((N - n) - pow(2, floor(log2(N - n))) * 2);
+	//this->remainingBalancedTreeCaseValue = n + (N - n) * floor(log2(N - n)) + ((N - n) - pow(2, floor(log2(N - n))) * 2);
+
+	//todo: improve the Sackin index for the case of an optimally balanced tree
+	this->remainingBalancedTreeCaseValue = (N - n) * floor(log2(N - n)) + ((N - n) - pow(2, floor(log2(N - n))) * 2);
+
 	// sackin index value growth after attaching current tree to caterpillar at N - n vertices
 	// equals sackin index for caterpillar without one leg at (N - n) vertices + caterpillar length * n 
 	this->remainingCaterpillarCaseValue = (((N - n) * (N - n) + (N - n)) / 2) + (N - n) * n;
@@ -223,8 +228,6 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 			// Update extreme Sackin index values
 			// check that value of the sarcine index is within proper range
 			tree->CountExtremeSackinIndexValues(n+1);
-			//todo: improve the Sackin index for the case of an optimally balanced tree
-			/*
 			if (Tree::NormalizeSackinIndex(tree->sackinIndexValue + tree->remainingBalancedTreeCaseValue) > Tree::maxSackinsIndex)
 			{
 				//pc->resetElapsed_secs();
@@ -234,7 +237,7 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 				if (pc) pc->updateProgress(n);
 				return NULL;
 			}
-			*/
+			
 			if (Tree::NormalizeSackinIndex(tree->sackinIndexValue + tree->remainingCaterpillarCaseValue) < Tree::minSackinsIndex)
 			{
 				//pc->resetElapsed_secs();

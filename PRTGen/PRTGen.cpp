@@ -33,7 +33,7 @@ enum Model
 int Node::count = 0, Edge::count = 0, Tree::count = 0;
 bool Tree::binary = true, Tree::rooted = true;
 bool Tree::printIndexes = false;
-double Tree::minSackinsIndex = DBL_MIN, Tree::maxSackinsIndex = DBL_MAX;
+double Tree::minSackinsIndex = -DBL_MAX, Tree::maxSackinsIndex = DBL_MAX;
 char Tree::sackin_norm_model = 'n';
 
 class TreeGenerator

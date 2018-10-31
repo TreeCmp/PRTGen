@@ -9,15 +9,19 @@ class Node
 {
 public:
 
-	// labels from 1 to N, internal nodes index equals 0
-	int index;
+	// labels from 1 to N, internal nodes label equals 0
+	int label;
 	deque<Node*> edges;
 	Node* parent;
 	int siblingNumber;
+	static Node* nodes;
+	static int index;
 	static int count;
 
 	Node(Node* = NULL);
 	Node(int a, Node* = NULL);
+	static Node* Add(Node* = NULL);
+	static Node* Add(int a, Node* = NULL);
 	static void join(Node *a, Node *b);
 	static void separate(Node *a, Node *b);
 	static void erase(deque<Node*>& edges, Node *a);
@@ -29,9 +33,13 @@ class Edge
 public:
 
 	Node *parent, *child;
+	static Edge* edges;
+	static int index;
 	static int count;
 
+	Edge();
 	Edge(Node *a, Node *b);
+	static Edge* Add(Node *a, Node *b);
 	static void erase(deque<Edge*>& edges, Node *n);
 	static void erase(deque<Edge*>& edges, Edge *e);
 	bool pendant();
@@ -73,6 +81,7 @@ public:
 	static double NormalizeSackinIndex(int sackinInd);
 	static void PrintRec(Node* node, Node *parent, ostream& file);
 	static void CountSum();
+	void ClearAndDelete();
 	void Delete();
 	~Tree();
 };

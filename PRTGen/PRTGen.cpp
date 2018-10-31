@@ -30,11 +30,15 @@ enum Model
 	ALL, EQUAL, YULE
 };
 
-int Node::count = 0, Edge::count = 0, Tree::count = 0;
+int Tree::count = 0;
+int Node::count = 0, Node::index = 0;
+int Edge::count = 0, Edge::index = 0;
 bool Tree::binary = true, Tree::rooted = true;
 bool Tree::printIndexes = false;
 double Tree::minSackinsIndex = -DBL_MAX, Tree::maxSackinsIndex = DBL_MAX;
 char Tree::sackin_norm_model = 'n';
+Edge* Edge::edges = NULL;
+Node* Node::nodes = NULL;
 
 class TreeGenerator
 {
@@ -48,6 +52,8 @@ class TreeGenerator
 			{
 				case EQUAL:
 					//file << M << endl;
+					Edge::edges = new Edge[3 * N];
+					Node::nodes = new Node[2 * N];
 					if (&file != &cout) pc = new ProgressCounter(N, M, rooted, binary, P);
 					for(int i = 0; i < M;)
 					{
@@ -64,23 +70,24 @@ class TreeGenerator
 						}
 						if (tree)
 						{
-							tree->Delete();
+							tree->ClearAndDelete();
 						}
-					
 					}
 					break;
 				case YULE:
+					Edge::edges = new Edge[3 * N];
+					Node::nodes = new Node[2 * N];
 					//file << M << endl;					
 					if (&file != &cout) pc = new ProgressCounter(N, M, rooted, binary, P);
 					for(int i = 0; i < M; )
 					{
 						Tree *tree = Tree::Yule(N, rooted, binary, P, pc);
-						if (Tree::Print(tree->root, NULL, file, pc))
+						if (tree && Tree::Print(tree->root, NULL, file, pc))
 						{
 							i++;
 							if (pc) pc->nextTreeCounted();
 						}
-						tree->Delete();
+						tree->ClearAndDelete();
 					}
 					break;
 				case ALL:

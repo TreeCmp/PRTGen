@@ -9,7 +9,7 @@ class ProgressCounter
 	int nodes_number;
 	double calcPassed;
 	const int interval_percent = 10;
-	clock_t clock_begin, clock_actual;
+	time_t clock_begin, clock_actual;
 	double elapsed_secs = 0.0;
 	double prev_elapsed_secs = 0;
 	const double interval_secs = 10.0;

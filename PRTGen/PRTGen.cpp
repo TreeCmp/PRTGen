@@ -10,15 +10,11 @@
 
 #include <tchar.h>
 #include "../XGetopt/XGetopt.h"
-#define ATOI_FUNC _wtoi
-#define ATOF_FUNC _wtof
 #define PTGEN_EXE "PTGen.exe"
 
 #else
 
 #include <unistd.h>
-#define ATOI_FUNC atoi
-#define ATOF_FUNC atof
 #define PTGEN_EXE "./PTGen"
 
 #endif
@@ -183,24 +179,24 @@ int main(int count, char **value)
 	int option;
 
 #ifdef _WIN32
-	while ((option = getopt(count, value, L"n:e:y:ruba:is:f:")) != -1)
+	while ((option = getopt(count, value, "n:e:y:ruba:is:f:")) != -1)
 #else
 	while (option = getopt (count, value, "n:e:y:ruba:is:f:") != -1)
 #endif
 		switch(option)
 		{
 			case 'n':
-				N = ATOI_FUNC(optarg);
+				N = atoi(optarg);
 				break;
 			case 'e':
 				model = EQUAL;
 				Tree::sackin_norm_model = 'e';
-				M = ATOI_FUNC(optarg);
+				M = atoi(optarg);
 				break;
 			case 'y':
 				model = YULE;
 				Tree::sackin_norm_model = 'y';
-				M = ATOI_FUNC(optarg);
+				M = atoi(optarg);
 				break;
 			case 'r':
 				rooted = true;
@@ -213,7 +209,7 @@ int main(int count, char **value)
 				break;
 			case 'a':
 				binary = false;
-				P = ATOF_FUNC(optarg);
+				P = atof(optarg);
 				break;
 			case 'i':
 				Tree::printIndexes = true;
@@ -221,11 +217,11 @@ int main(int count, char **value)
 			case 's':
 				Tree::sackin_norm_model = *optarg;
 				if (optind < count && *value[optind] != '-') {
-					Tree::minSackinsIndex = ATOF_FUNC(value[optind]);
+					Tree::minSackinsIndex = atof(value[optind]);
 					optind++;
 				}
 				if (optind < count && *value[optind] != '-') {
-					Tree::maxSackinsIndex = ATOF_FUNC(value[optind]);
+					Tree::maxSackinsIndex = atof(value[optind]);
 					optind++;
 				}
 				else {

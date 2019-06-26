@@ -17,7 +17,7 @@ class ProgressCounter
 
 public:
 
-	ProgressCounter(int N, int M, bool R, bool B, int P);
+	ProgressCounter(int N, int M, bool R, bool B, int P = 0);
 	unsigned long long get_trees_number();
 	void nextTreeCounted();
 	void nextTreeRejected();

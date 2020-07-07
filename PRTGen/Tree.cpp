@@ -101,13 +101,13 @@ Edge::~Edge() { count--; }
 int Tree::N;
 double Tree::sum;
 
-Tree::Tree(int N, bool rooted, bool binary, float P) {
-	this->N = N;
-	this->rooted = rooted;
-	this->binary = binary;
-	this->P = P;
-	this->internalNodesNumberExpected = P;
-	this->generateAllTrees = !(bool)P;
+Tree::Tree(Parameters param) {
+	this->N = param.N;
+	this->rooted = param.rooted;
+	this->binary = param.binary;
+	this->P = param.P;
+	this->internalNodesNumberExpected = param.P;
+	this->generateAllTrees = !(bool)param.P;
 	this->internalNodesNumber = 0;
 	this->sackinIndexValue = 0;
 	//CountExtremeSackinIndexValues(0);
@@ -135,12 +135,12 @@ void Tree::CountExtremeSackinIndexValues(int n)
 	this->remainingCaterpillarCaseValue = (((N - n) * (N - n) + (N - n)) / 2) + (N - n) * n;
 }
 
-Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
+Tree* Tree::Equal(Parameters param, ProgressCounter* pc)
 {
 	std::random_device rd;  //Will be used to obtain a seed for the random number engine
 	std::default_random_engine e1(rd());
 	std::uniform_int_distribution<int> range_0_INTMAX_unif_int_distr(0, INT_MAX);
-	Tree *tree = new Tree(N, rooted, binary, P);
+	Tree *tree = new Tree(param);
 
 	int *label = new int[N];
 	for (int i = 0; i < N; i++)
@@ -181,7 +181,7 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 		//edge = tree->edges[0];
 
 		// add bifurcation with 1-P probability
-		if (P < static_cast<float>(range_0_INTMAX_unif_int_distr(e1)) / static_cast<float>(INT_MAX)) {
+		if (param.P < static_cast<float>(range_0_INTMAX_unif_int_distr(e1)) / static_cast<float>(INT_MAX)) {
 
 			// remove taken edge
 			Edge::erase(tree->edges, edge);
@@ -283,13 +283,13 @@ Tree* Tree::Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 	return tree;
 }
 
-Tree*Tree::Yule(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
+Tree*Tree::Yule(Parameters param, ProgressCounter* pc)
 {
 	std::random_device rd;  //Will be used to obtain a seed for the random number engine
 	std::default_random_engine e1(rd());
 	std::uniform_int_distribution<int> range_0_INTMAX_unif_int_distr(0, INT_MAX);
 	std::uniform_real_distribution<float> range_0_1_unif_float_distr(0, 1);
-	Tree *tree = new Tree(N, rooted, binary, P);
+	Tree *tree = new Tree(param);
 
 	int *label = new int[N];
 	for (int i = 0; i < N; i++)
@@ -332,7 +332,7 @@ Tree*Tree::Yule(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 		} while (edge->pendant() == false && !(n == N && rooted));
 
 		// add bifurcation with 1-P probability
-		if (P < static_cast<float>(range_0_1_unif_float_distr(e1)) / static_cast<float>(INT_MAX)) {
+		if (param.P < static_cast<float>(range_0_1_unif_float_distr(e1)) / static_cast<float>(INT_MAX)) {
 
 			// remove taken edge
 			Edge::erase(tree->edges, edge);
@@ -386,9 +386,9 @@ Tree*Tree::Yule(int N, bool rooted, bool binary, float P, ProgressCounter* pc)
 	return tree;
 }
 
-void Tree::All(int N, bool rooted, bool binary, ostream& file, int P, ProgressCounter* pc)
+void Tree::All(Parameters param, ProgressCounter* pc)
 {
-	Tree *tree = new Tree(N, rooted, binary, P);
+	Tree *tree = new Tree(param);
 	int *label = new int[N];
 	for (int i = 0; i < N; i++)
 		label[i] = i + 1;
@@ -402,7 +402,7 @@ void Tree::All(int N, bool rooted, bool binary, ostream& file, int P, ProgressCo
 	Node::join(tree->root, node);
 	tree->edges.push_back(new Edge(tree->root, node));
 
-	tree->Explode(n, N, tree, file, label, pc);
+	tree->Explode(n, N, tree, *param.file, label, pc);
 	if (pc) pc->updateProgress();
 
 	delete[] label;

@@ -70,11 +70,11 @@ public:
 	static char sackin_norm_model;
 	static double sum;
 
-	Tree(int N, bool rooted, bool binary, float P);
+	Tree(Parameters param);
 	void CountExtremeSackinIndexValues(int n);
-	static Tree* Equal(int N, bool rooted, bool binary, float P, ProgressCounter* pc);
-	static Tree* Yule(int N, bool rooted, bool binary, float P, ProgressCounter* pc);
-	static void All(int N, bool rooted, bool binary, ostream& file, int P, ProgressCounter* pc);
+	static Tree* Equal(Parameters param, ProgressCounter* pc);
+	static Tree* Yule(Parameters param, ProgressCounter* pc);
+	static void All(Parameters param, ProgressCounter* pc);
 	void Explode(int n, int N, Tree* tree, ostream& file, int *label, ProgressCounter* pc);
 	static bool Print(Node* node, Node *parent, ostream& file, ProgressCounter* pc);
 	static void CountSackinIndex(Node* node, Node *parent, int& sackinInd, int depth = 0);

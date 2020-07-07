@@ -31,13 +31,10 @@ static unsigned long long T(unsigned long long n, unsigned long long m)
 	return m * T(n - 1, m) + (n + m - 2) *  T(n - 1, m - 1);
 }
 
-ProgressCounter::ProgressCounter(int N, int M, bool R, bool B, int P) {
-	nodes_number = N;
-	rooted = R;
-	binary = B;
-	if (M)
+ProgressCounter::ProgressCounter(Parameters param) {
+	if (param.M)
 	{
-		trees_number = M;
+		trees_number = param.M;
 	}
 	else if (binary)
 	{
@@ -49,7 +46,7 @@ ProgressCounter::ProgressCounter(int N, int M, bool R, bool B, int P) {
 		if (rooted) {
 			for (int m = 1; m < nodes_number; m++)
 			{
-				if (!P || (P == m)) {
+				if (!param.P || (param.P == m)) {
 					trees_number += T(nodes_number, m);
 				}
 			}
@@ -58,7 +55,7 @@ ProgressCounter::ProgressCounter(int N, int M, bool R, bool B, int P) {
 		{
 			for (int m = 1; m < nodes_number - 1; m++)
 			{
-				if (!P || P == m) {
+				if (!param.P || param.P == m) {
 					trees_number += T( nodes_number - 1, m);
 				}
 			}

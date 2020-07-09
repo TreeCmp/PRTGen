@@ -72,6 +72,20 @@ Node* Node::takeFirstOtherChild(Node *n) {
 	}
 }
 
+Node* Node::takeSecondOtherChild(Node *n) {
+	bool second = false;
+	for (deque<Node*>::iterator it = edges.begin(); it != edges.end(); it++) {
+		if (*it != this->parent && *it != n) {
+			if (second) {
+				return *it;				
+			}
+			else {
+				second = true;
+			}			
+		}
+	}
+}
+
 Node::~Node() { count--; }
 
 Edge::Edge() : parent(), child() {}
@@ -126,6 +140,18 @@ int Edge::swapParent(deque<Edge*>& edges, Node *parent, Node *child, Node *new_p
 	for (deque<Edge*>::iterator it = edges.begin(); it != edges.end(); it++) {
 		if ((*it)->parent == parent && (*it)->child == child) {
 			(*it)->parent = new_parent;
+			count++;
+		}
+	}
+	return count;
+}
+
+int Edge::swapChild(deque<Edge*>& edges, Edge *e, Node *new_child)
+{
+	int count = 0;
+	for (deque<Edge*>::iterator it = edges.begin(); it != edges.end(); it++) {
+		if (*it == e) {
+			(*it)->child = new_child;
 			count++;
 		}
 	}
@@ -212,31 +238,49 @@ void Tree::DoSPR() {
 		e2 = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];
 	} while (!isValidSPR(e1, e2));
 	Node* e1_child_brother = e1->parent->takeFirstOtherChild(e1->child);	
-	if (e1->parent != this->root) {
+	if (e1->parent == this->root) {
+		if (rooted) {
+			Node::separate(e1->parent, e1_child_brother);
+			this->root = e1_child_brother;
+			Node::separate(e2->parent, e2->child);
+			Node::join(e2->parent, e1->parent);
+			Node::join(e1->parent, e2->child);
+			Edge::swapChild(this->edges, e1->parent, e1_child_brother, e2->child);
+			Edge::swapChild(this->edges, e2, e1->parent);
+		}
+		else {
+			Node::separate(e1->parent, e1_child_brother);
+			this->root = e1_child_brother;
+			Node* e1_second_child_brother = e1->parent->takeSecondOtherChild(e1->child);
+			Node::separate(e1->parent, e1_second_child_brother);
+			Node::join(e1_child_brother, e1_second_child_brother);
+			Edge::swapParent(this->edges, e1->parent, e1_second_child_brother, e1_child_brother);
+			Node::separate(e2->parent, e2->child);
+			Node::join(e2->parent, e1->parent);
+			Node::join(e1->parent, e2->child);
+			Edge::swapChild(this->edges, e1->parent, e1_child_brother, e2->child);
+			Edge::swapParent(this->edges, e2, e1->parent);
+		}
+	}
+	else if (e2->parent == this->root) {
+
+	}
+	else {
 		Node* e1_grand_parent = e1->parent->parent;
 		int deg = e1->parent->degree();
+		//condition for multifurcations occurrence possibility
 		if (deg <= 3) {
 			Node::separate(e1->parent, e1_child_brother);
 			Node::separate(e1_grand_parent, e1->parent);
 			Node::join(e1_grand_parent, e1_child_brother);
 			Edge::swapParent(this->edges, e1->parent, e1_child_brother, e1_grand_parent);
 		}
+		Node::separate(e2->parent, e2->child);
+		Node::join(e2->parent, e1->parent);
+		Node::join(e1->parent, e2->child);
 		Edge::swapParent(this->edges, e1_grand_parent, e1->parent, e2->parent);
-		Node::separate(e2->parent, e2->child);
-		Node::join(e2->parent, e1->parent);
-		Node::join(e1->parent, e2->child);
 		Edge::swapParent(this->edges, e2, e1->parent);
 	}
-	else {
-		Node::separate(e1->parent, e1_child_brother);
-		this->root = e1_child_brother;
-		Node::separate(e2->parent, e2->child);
-		Node::join(e2->parent, e1->parent);
-		Node::join(e1->parent, e2->child);
-		Edge::swapChild(this->edges, e1->parent, e1_child_brother, e2->child);
-		Edge::swapParent(this->edges, e2, e1->parent);
-	}
-
 }
 
 void Tree::CountExtremeSackinIndexValues(int n)

@@ -27,6 +27,7 @@ public:
 	static void erase(deque<Node*>& edges, Node *a);
 	int Node::degree();
 	Node* Node::takeFirstOtherChild(Node *n);
+	Node* Node::takeSecondOtherChild(Node *n);
 	~Node();
 };
 
@@ -46,6 +47,7 @@ public:
 	static void erase(deque<Edge*>& edges, Edge *e);
 	static int swapParent(deque<Edge*>& edges, Edge *e, Node *new_parent);
 	static int swapParent(deque<Edge*>& edges, Node *parent, Node *child, Node *new_parent);
+	static int swapChild(deque<Edge*>& edges, Edge *e, Node *new_parent);
 	static int swapChild(deque<Edge*>& edges, Node *parent, Node *child, Node *new_child);
 	bool pendant();
 	~Edge();

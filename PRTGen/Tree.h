@@ -25,6 +25,8 @@ public:
 	static void join(Node *a, Node *b);
 	static void separate(Node *a, Node *b);
 	static void erase(deque<Node*>& edges, Node *a);
+	int Node::degree();
+	Node* Node::takeFirstOtherChild(Node *n);
 	~Node();
 };
 
@@ -42,6 +44,9 @@ public:
 	static Edge* Add(Node *a, Node *b);
 	static void erase(deque<Edge*>& edges, Node *n);
 	static void erase(deque<Edge*>& edges, Edge *e);
+	static int swapParent(deque<Edge*>& edges, Edge *e, Node *new_parent);
+	static int swapParent(deque<Edge*>& edges, Node *parent, Node *child, Node *new_parent);
+	static int swapChild(deque<Edge*>& edges, Node *parent, Node *child, Node *new_child);
 	bool pendant();
 	~Edge();
 };
@@ -81,7 +86,13 @@ public:
 	static double NormalizeSackinIndex(int sackinInd);
 	static void PrintRec(Node* node, Node *parent, ostream& file);
 	static void CountSum();
+	void DoSPR();
 	void ClearAndDelete();
 	void Delete();
 	~Tree();
+
+private:
+	bool isAncestor(Node* n1, Node* n2);
+	bool isInnerMove(Edge* s, Edge* t);
+	bool isValidSPR(Edge* s, Edge* t);
 };

@@ -58,6 +58,15 @@ class TreeGenerator
 						if (tree && Tree::Print(tree->root, NULL, *param.file, pc))
 						{
 							i++;
+							if (param.D > 0) {
+								cout << "In order, D trees each distant by (1,2,3...D) " << (param.rooted ? "" : "u") << "spr:" << endl;
+								for (int j = 0; j < param.D; j++) {
+									tree->DoSPR();
+									Tree::Print(tree->root, NULL, *param.file, pc);
+									if (pc) pc->nextTreeCounted();
+								}
+								cout << endl;
+							}
 							if (pc) pc->nextTreeCounted();
 						}
 						if (tree)
@@ -145,7 +154,7 @@ void printHelp() {
 	cout << "-sn X Y - include only trees in Sackin's index range (normalized values from 0.0-1.0 scope)\n";
 	cout << "-sy X Y - include only trees in Sackin's index range (Yule reference model normalized values)\n";
 	cout << "-se X Y - include only trees in Sackin's index range (uniform reference model normalized values)\n";
-	//cout << "-spr D - generate for each tree D trees, each subsequent distant from the first one by 1, 2 ... D spr/uspr\n";
+	cout << "-spr D - generate for each tree D trees, each subsequent distant from the first one by 1, 2 ... D spr/uspr\n";
 	cout << "-f X - save result to X file (default to console)\n\n";
 	cout << "With -b and without -e or -y option generates all possible binary N-leaf trees.\n";
 	cout << "With -a and without -e or -y option generates all possible arbitraty N-leaf\n";
@@ -206,12 +215,12 @@ int main(int count, char **value)
 				Tree::printIndexes = true;
 				break;
 			case 's':
-				//param.tmpoptarg = optarg;
-				//if (*param.tmpoptarg == 'p') {
-				//	param.D = atoi(value[optind]);
-				//	optind++;
-				//}
-				//else {
+				param.tmpoptarg = optarg;
+				if (*param.tmpoptarg == 'p') {
+					param.D = atoi(value[optind]);
+					optind++;
+				}
+				else {
 					Tree::sackin_norm_model = *param.tmpoptarg;
 					if (optind < count && *value[optind] != '-') {
 						Tree::minSackinsIndex = atof(value[optind]);
@@ -225,7 +234,7 @@ int main(int count, char **value)
 						cout << "-s? option require two float numbers \n";
 						return 0;
 					}
-				//}
+				}
 				break;
 			case 'f':
 				param.file = new ofstream(optarg);

@@ -58,37 +58,90 @@ void Node::erase(deque<Node*>& edges, Node *a)
 		}
 }
 
+int Node::degree()
+{
+	deque<Node*>::iterator it = find(this->edges.begin(), this->edges.end(), this->parent);
+	return this->edges.size() + (it == this->edges.end() ? 1 : 0);
+}
+
+Node* Node::takeFirstOtherChild(Node *n) {
+	for (deque<Node*>::iterator it = edges.begin(); it != edges.end(); it++) {
+		if (*it != this->parent && *it != n) {
+			return *it;
+		}
+	}
+}
+
 Node::~Node() { count--; }
 
 Edge::Edge() : parent(), child() {}
 
-Edge::Edge(Node *a, Node *b) : parent(a), child(b) { count++; }
+Edge::Edge(Node *parent, Node *child) : parent(parent), child(child) { count++; }
 
-Edge* Edge::Add(Node *a, Node *b)
+Edge* Edge::Add(Node *parent, Node *child)
 {
-	edges[Edge::index].parent = a;
-	edges[Edge::index].child = b;
+	edges[Edge::index].parent = parent;
+	edges[Edge::index].child = child;
 	return &edges[Edge::index++];
 }
 
 void Edge::erase(deque<Edge*>& edges, Node *n)
 {
-	for (int i = 0; i < edges.size(); i++)
+	for (int i = 0; i < edges.size();)
 		if (edges[i]->parent == n || edges[i]->child == n)
 		{
 			edges.erase(edges.begin() + i);
-			return;
 		}
+		else i++;
+	return;
 }
 
 void Edge::erase(deque<Edge*>& edges, Edge *e)
 {
-	for (int i = 0; i < edges.size(); i++)
+	for (int i = 0; i < edges.size();)
 		if (edges[i] == e)
-		{
+		{	
+			Edge* toDel = edges[i];
 			edges.erase(edges.begin() + i);
-			return;
 		}
+		else i++;
+	return;
+}
+
+int Edge::swapParent(deque<Edge*>& edges, Edge *e, Node *new_parent)
+{
+	int count = 0;
+	for (deque<Edge*>::iterator it = edges.begin(); it != edges.end(); it++) {
+		if (*it == e) {
+			(*it)->parent = new_parent;
+			count++;
+		}
+	}
+	return count;
+}
+
+int Edge::swapParent(deque<Edge*>& edges, Node *parent, Node *child, Node *new_parent)
+{
+	int count = 0;
+	for (deque<Edge*>::iterator it = edges.begin(); it != edges.end(); it++) {
+		if ((*it)->parent == parent && (*it)->child == child) {
+			(*it)->parent = new_parent;
+			count++;
+		}
+	}
+	return count;
+}
+
+int Edge::swapChild(deque<Edge*>& edges, Node *parent, Node *child, Node *new_child)
+{
+	int count = 0;
+	for (deque<Edge*>::iterator it = edges.begin(); it != edges.end(); it++) {
+		if ((*it)->parent == parent && (*it)->child == child) {
+			(*it)->child = new_child;
+			count++;
+		}
+	}
+	return count;
 }
 
 bool Edge::pendant()
@@ -120,6 +173,72 @@ void Tree::CountSum() {
 	return;
 }
 
+bool Tree::isAncestor(Node* n1, Node* n2) {
+	Node* tmp_node = n2;
+	while (tmp_node && tmp_node != this->root) {
+		if (tmp_node == n1) {
+			return true;
+		}
+		tmp_node = tmp_node->parent;
+	}
+	return false;
+}
+
+bool Tree::isValidSPR(Edge* s, Edge* t) {
+	if (s == t) {
+		return false;
+	}
+	if (s->parent == t->parent) {
+		return false;
+	}
+	if (s->child == t->parent || s->parent == t->child) {
+		return false;
+	}
+	if (isAncestor(s->child, t->parent)) {
+		return false;
+	}
+	return true;
+}
+
+void Tree::DoSPR() {
+	std::random_device rd;  //Will be used to obtain a seed for the random number engine
+	std::default_random_engine eng1(rd());
+	std::uniform_int_distribution<int> range_0_INTMAX_unif_int_distr(0, INT_MAX);
+	Edge *e1 = NULL;
+	Edge *e2 = NULL;
+	// take two different random edge
+	do {
+		e1 = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];
+		e2 = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];
+	} while (!isValidSPR(e1, e2));
+	Node* e1_child_brother = e1->parent->takeFirstOtherChild(e1->child);	
+	if (e1->parent != this->root) {
+		Node* e1_grand_parent = e1->parent->parent;
+		int deg = e1->parent->degree();
+		if (deg <= 3) {
+			Node::separate(e1->parent, e1_child_brother);
+			Node::separate(e1_grand_parent, e1->parent);
+			Node::join(e1_grand_parent, e1_child_brother);
+			Edge::swapParent(this->edges, e1->parent, e1_child_brother, e1_grand_parent);
+		}
+		Edge::swapParent(this->edges, e1_grand_parent, e1->parent, e2->parent);
+		Node::separate(e2->parent, e2->child);
+		Node::join(e2->parent, e1->parent);
+		Node::join(e1->parent, e2->child);
+		Edge::swapParent(this->edges, e2, e1->parent);
+	}
+	else {
+		Node::separate(e1->parent, e1_child_brother);
+		this->root = e1_child_brother;
+		Node::separate(e2->parent, e2->child);
+		Node::join(e2->parent, e1->parent);
+		Node::join(e1->parent, e2->child);
+		Edge::swapChild(this->edges, e1->parent, e1_child_brother, e2->child);
+		Edge::swapParent(this->edges, e2, e1->parent);
+	}
+
+}
+
 void Tree::CountExtremeSackinIndexValues(int n)
 {
 	// sackin index value growth after attaching current tree and balanced tree build of remaining nodes to root
@@ -138,7 +257,7 @@ void Tree::CountExtremeSackinIndexValues(int n)
 Tree* Tree::Equal(Parameters param, ProgressCounter* pc)
 {
 	std::random_device rd;  //Will be used to obtain a seed for the random number engine
-	std::default_random_engine e1(rd());
+	std::default_random_engine eng1(rd());
 	std::uniform_int_distribution<int> range_0_INTMAX_unif_int_distr(0, INT_MAX);
 	Tree *tree = new Tree(param);
 
@@ -174,14 +293,14 @@ Tree* Tree::Equal(Parameters param, ProgressCounter* pc)
 			break;
 		Edge *edge;
 		// take random edge
-		edge = tree->edges[range_0_INTMAX_unif_int_distr(e1) % tree->edges.size()];
+		edge = tree->edges[range_0_INTMAX_unif_int_distr(eng1) % tree->edges.size()];
 		// always take last edge (only for debuging)
 		//edge = tree->edges[tree->edges.size() - 1];
 		// always take first edge (only for debuging)
 		//edge = tree->edges[0];
 
 		// add bifurcation with 1-P probability
-		if (param.P < static_cast<float>(range_0_INTMAX_unif_int_distr(e1)) / static_cast<float>(INT_MAX)) {
+		if (param.P < static_cast<float>(range_0_INTMAX_unif_int_distr(eng1)) / static_cast<float>(INT_MAX)) {
 
 			// remove taken edge
 			Edge::erase(tree->edges, edge);
@@ -286,7 +405,7 @@ Tree* Tree::Equal(Parameters param, ProgressCounter* pc)
 Tree*Tree::Yule(Parameters param, ProgressCounter* pc)
 {
 	std::random_device rd;  //Will be used to obtain a seed for the random number engine
-	std::default_random_engine e1(rd());
+	std::default_random_engine eng1(rd());
 	std::uniform_int_distribution<int> range_0_INTMAX_unif_int_distr(0, INT_MAX);
 	std::uniform_real_distribution<float> range_0_1_unif_float_distr(0, 1);
 	Tree *tree = new Tree(param);
@@ -298,7 +417,7 @@ Tree*Tree::Yule(Parameters param, ProgressCounter* pc)
 	// permutate labels
 	for (int i = N - 1; i >= 1; i--)
 	{
-		int index = range_0_INTMAX_unif_int_distr(e1) % (i + 1);
+		int index = range_0_INTMAX_unif_int_distr(eng1) % (i + 1);
 		swap(label[index], label[i]);
 	}
 
@@ -324,7 +443,7 @@ Tree*Tree::Yule(Parameters param, ProgressCounter* pc)
 		Edge *edge;
 		do
 		{
-			edge = tree->edges[range_0_INTMAX_unif_int_distr(e1) % tree->edges.size()];
+			edge = tree->edges[range_0_INTMAX_unif_int_distr(eng1) % tree->edges.size()];
 			// always take last edge (only for debuging)
 			//edge = tree->edges[tree->edges.size() - 1];
 			// always take first edge (only for debuging)
@@ -332,7 +451,7 @@ Tree*Tree::Yule(Parameters param, ProgressCounter* pc)
 		} while (edge->pendant() == false && !(n == N && rooted));
 
 		// add bifurcation with 1-P probability
-		if (param.P < static_cast<float>(range_0_1_unif_float_distr(e1)) / static_cast<float>(INT_MAX)) {
+		if (param.P < static_cast<float>(range_0_1_unif_float_distr(eng1)) / static_cast<float>(INT_MAX)) {
 
 			// remove taken edge
 			Edge::erase(tree->edges, edge);

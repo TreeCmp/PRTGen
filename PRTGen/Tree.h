@@ -23,11 +23,15 @@ public:
 	static Node* Add(Node* = NULL);
 	static Node* Add(int a, Node* = NULL);
 	static void join(Node *a, Node *b);
+	static void joinIfNotContains(Node *a, Node *b);
 	static void separate(Node *a, Node *b);
 	static void erase(deque<Node*>& edges, Node *a);
 	int Node::degree();
-	Node* Node::takeFirstOtherChild(Node *n);
-	Node* Node::takeSecondOtherChild(Node *n);
+	Node* takeFirstOtherChild(Node *n);
+	Node* takeSecondOtherChild(Node *n);
+	Node* takeFirstOtherNeigbour(Node *n);
+	Node* takeSecondOtherNeigbour(Node *n);
+	bool ContainsNeigbour(Node* wanted);
 	~Node();
 };
 
@@ -84,17 +88,21 @@ public:
 	static void All(Parameters param, ProgressCounter* pc);
 	void Explode(int n, int N, Tree* tree, ostream& file, int *label, ProgressCounter* pc);
 	static bool Print(Node* node, Node *parent, ostream& file, ProgressCounter* pc);
+	static void PrintDebug(Tree* tree, ostream& file);
 	static void CountSackinIndex(Node* node, Node *parent, int& sackinInd, int depth = 0);
 	static double NormalizeSackinIndex(int sackinInd);
-	static void PrintRec(Node* node, Node *parent, ostream& file);
+	
 	static void CountSum();
 	void DoSPR();
+	bool ContainsNode(Node* root_node, Node* excepted_neighbor, Node* wanted);
+	bool SwapEdge(Node* node, Node* source, Node* target);
 	void ClearAndDelete();
 	void Delete();
 	~Tree();
 
-private:
+private:	
+	static void PrintRec(Node* node, Node *parent, ostream& file);
 	bool isAncestor(Node* n1, Node* n2);
-	bool isInnerMove(Edge* s, Edge* t);
 	bool isValidSPR(Edge* s, Edge* t);
+	bool isValidUSPR(Edge* s, Edge* t);
 };

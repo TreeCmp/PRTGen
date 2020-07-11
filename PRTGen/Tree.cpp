@@ -39,6 +39,20 @@ void Node::join(Node *parent, Node *child)
 	parent->edges.push_back(child);
 	child->edges.push_back(parent);
 	child->parent = parent;
+	if (parent->degree() > 3 || child->degree() > 3) {
+		int debug = 1;
+	}
+}
+
+void Node::joinIfNotContains(Node *parent, Node *child)
+{
+	if (!parent->ContainsNeigbour(child)) {
+		parent->edges.push_back(child);
+	}
+	if (!child->ContainsNeigbour(parent)) {
+		child->edges.push_back(parent);
+	}	
+	child->parent = parent;
 }
 
 void Node::separate(Node *parent, Node *child)
@@ -59,9 +73,14 @@ void Node::erase(deque<Node*>& edges, Node *a)
 }
 
 int Node::degree()
-{
-	deque<Node*>::iterator it = find(this->edges.begin(), this->edges.end(), this->parent);
-	return this->edges.size() + (it == this->edges.end() ? 1 : 0);
+{	
+	if (Tree::rooted) {
+		deque<Node*>::iterator it = find(this->edges.begin(), this->edges.end(), this->parent);
+		return this->edges.size() + (it == this->edges.end() ? 1 : 0);
+	}
+	else {
+		return this->edges.size();
+	}
 }
 
 Node* Node::takeFirstOtherChild(Node *n) {
@@ -82,6 +101,28 @@ Node* Node::takeSecondOtherChild(Node *n) {
 			else {
 				second = true;
 			}			
+		}
+	}
+}
+
+Node* Node::takeFirstOtherNeigbour(Node *n) {
+	for (deque<Node*>::iterator it = edges.begin(); it != edges.end(); it++) {
+		if (*it != n) {
+			return *it;
+		}
+	}
+}
+
+Node* Node::takeSecondOtherNeigbour(Node *n) {
+	bool second = false;
+	for (deque<Node*>::iterator it = edges.begin(); it != edges.end(); it++) {
+		if (*it != n) {
+			if (second) {
+				return *it;
+			}
+			else {
+				second = true;
+			}
 		}
 	}
 }
@@ -170,6 +211,21 @@ int Edge::swapChild(deque<Edge*>& edges, Node *parent, Node *child, Node *new_ch
 	return count;
 }
 
+bool Node::ContainsNeigbour(Node* wanted) {
+	if (!this->edges.empty())
+	{
+		for (int i = 0; i < this->edges.size(); i++)
+		{
+			if (this->edges[i] == wanted) {
+				return true;
+			}
+			if (i + 1 == this->edges.size())
+				break;
+		}
+	}
+	return false;
+}
+
 bool Edge::pendant()
 {
 	return (parent->label > 0) || (child->label > 0);
@@ -226,20 +282,33 @@ bool Tree::isValidSPR(Edge* s, Edge* t) {
 	return true;
 }
 
+bool Tree::isValidUSPR(Edge* s, Edge* t) {
+	if (s == t) {
+		return false;
+	}
+	if (s->parent == t->parent || s->child == t->child) {
+		return false;
+	}
+	if (s->child == t->parent || s->parent == t->child) {
+		return false;
+	}
+	return true;
+}
+
 void Tree::DoSPR() {
 	std::random_device rd;  //Will be used to obtain a seed for the random number engine
 	std::default_random_engine eng1(rd());
 	std::uniform_int_distribution<int> range_0_INTMAX_unif_int_distr(0, INT_MAX);
 	Edge *e1 = NULL;
 	Edge *e2 = NULL;
-	// take two different random edge
-	do {
-		e1 = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];
-		e2 = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];
-	} while (!isValidSPR(e1, e2));
-	Node* e1_child_brother = e1->parent->takeFirstOtherChild(e1->child);	
-	if (e1->parent == this->root) {
-		if (rooted) {
+	if (rooted) {
+		// take two different random edges
+		do {
+			e1 = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];
+			e2 = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];
+		} while (!isValidSPR(e1, e2));
+		Node* e1_child_brother = e1->parent->takeFirstOtherChild(e1->child);
+		if (e1->parent == this->root) {
 			Node::separate(e1->parent, e1_child_brother);
 			this->root = e1_child_brother;
 			Node::separate(e2->parent, e2->child);
@@ -249,38 +318,91 @@ void Tree::DoSPR() {
 			Edge::swapChild(this->edges, e2, e1->parent);
 		}
 		else {
-			Node::separate(e1->parent, e1_child_brother);
-			this->root = e1_child_brother;
-			Node* e1_second_child_brother = e1->parent->takeSecondOtherChild(e1->child);
-			Node::separate(e1->parent, e1_second_child_brother);
-			Node::join(e1_child_brother, e1_second_child_brother);
-			Edge::swapParent(this->edges, e1->parent, e1_second_child_brother, e1_child_brother);
+			Node* e1_grand_parent = e1->parent->parent;
+			int deg = e1->parent->degree();
+			//condition for multifurcations occurrence possibility
+			if (deg <= 3) {
+				Node::separate(e1->parent, e1_child_brother);
+				Node::separate(e1_grand_parent, e1->parent);
+				Node::join(e1_grand_parent, e1_child_brother);
+				Edge::swapParent(this->edges, e1->parent, e1_child_brother, e1_grand_parent);
+			}
 			Node::separate(e2->parent, e2->child);
 			Node::join(e2->parent, e1->parent);
 			Node::join(e1->parent, e2->child);
-			Edge::swapChild(this->edges, e1->parent, e1_child_brother, e2->child);
+			Edge::swapParent(this->edges, e1_grand_parent, e1->parent, e2->parent);
 			Edge::swapParent(this->edges, e2, e1->parent);
 		}
 	}
-	else if (e2->parent == this->root) {
-
-	}
 	else {
-		Node* e1_grand_parent = e1->parent->parent;
-		int deg = e1->parent->degree();
+		// take two different random edges
+		do {
+			e1 = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];
+			e2 = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];
+		} while (!isValidUSPR(e1, e2));
+		Node* e1_parent = NULL;
+		Node* e1_child = NULL;
+		if (Tree::ContainsNode(e1->child, e1->parent, e2->parent)) {
+			e1_parent = e1->child;
+			e1_child = e1->parent;
+		}
+		if (Tree::ContainsNode(e1->parent, e1->child, e2->parent)) {
+			e1_parent = e1->parent;
+			e1_child = e1->child;
+		}
+		Node* e2_parent = NULL;
+		Node* e2_child = NULL;
+		if (Tree::ContainsNode(e2->child, e2->parent, e1->parent)) {
+			e2_parent = e2->child;
+			e2_child = e2->parent;
+		}
+		if (Tree::ContainsNode(e2->parent, e2->child, e1->parent)) {
+			e2_parent = e2->parent;
+			e2_child = e2->child;
+		}
+		Node* e1_node_first_neigbour = e1_parent->takeFirstOtherNeigbour(e1_child);
+		Node* e1_node_second_neigbour = e1_parent->takeSecondOtherNeigbour(e1_child);
+		int deg = e1_parent->degree();
 		//condition for multifurcations occurrence possibility
 		if (deg <= 3) {
-			Node::separate(e1->parent, e1_child_brother);
-			Node::separate(e1_grand_parent, e1->parent);
-			Node::join(e1_grand_parent, e1_child_brother);
-			Edge::swapParent(this->edges, e1->parent, e1_child_brother, e1_grand_parent);
+			Node::separate(e1_parent, e1_node_second_neigbour);
+			Node::separate(e1_parent, e1_node_first_neigbour);
+			Node::join(e1_node_second_neigbour, e1_node_first_neigbour);
+			if (!Edge::swapParent(this->edges, e1_parent, e1_node_first_neigbour, e1_node_second_neigbour)){
+				Edge::swapChild(this->edges, e1_node_first_neigbour, e1_parent, e1_node_second_neigbour);
+				}
 		}
-		Node::separate(e2->parent, e2->child);
-		Node::join(e2->parent, e1->parent);
-		Node::join(e1->parent, e2->child);
-		Edge::swapParent(this->edges, e1_grand_parent, e1->parent, e2->parent);
-		Edge::swapParent(this->edges, e2, e1->parent);
+		Node::separate(e2_parent, e2_child);
+		Node::join(e2_parent, e1_parent);
+		Node::join(e1_parent, e2_child);
+		if (!Edge::swapChild(this->edges, e1_parent, e1_node_second_neigbour, e2_parent)) {
+			Edge::swapParent(this->edges, e1_node_second_neigbour, e1_parent, e2_parent);
+		}
+		if (!Edge::swapChild(this->edges, e2_child, e2_parent, e1_parent)) {
+			Edge::swapParent(this->edges, e2_parent, e2_child, e1_parent);
+		}
 	}
+}
+
+bool Tree::ContainsNode(Node* node, Node* excepted_neighbor, Node* wanted) {
+	deque<Node*> edges(node->edges);
+	Node::erase(edges, excepted_neighbor);
+
+	if (!edges.empty())
+	{
+		for (int i = 0; i < edges.size(); i++)
+		{
+			if (edges[i] == wanted) {
+				return true;
+			}
+			if (ContainsNode(edges[i], node, wanted)) {
+				return true;
+			}
+			if (i + 1 == edges.size())
+				break;
+		}
+	}
+	return false;
 }
 
 void Tree::CountExtremeSackinIndexValues(int n)
@@ -737,7 +859,9 @@ bool Tree::Print(Node* node, Node *parent, ostream& file, ProgressCounter* pc)
 {
 	int sackinInd = 0;
 	double normSackinInd = 0.0;
-	Tree::CountSackinIndex(node, NULL, sackinInd);
+	if (rooted) {
+		Tree::CountSackinIndex(node, NULL, sackinInd);
+	}
 	normSackinInd = Tree::NormalizeSackinIndex(sackinInd);
 
 	if (Tree::minSackinsIndex <= normSackinInd && Tree::maxSackinsIndex >= normSackinInd) {
@@ -779,6 +903,40 @@ void Tree::PrintRec(Node* node, Node *parent, ostream& file)
 	}
 	if (node->label > 0) {
 		file << node->label;
+	}
+}
+
+void Tree::PrintDebug(Tree* tree, ostream& file)
+{
+	file << "Edges (parent-child):" << endl;
+	for (int i = 0; i < tree->edges.size(); i++) {
+		file << tree->edges[i]->parent->label;
+		file << '-';
+		file << tree->edges[i]->child->label << endl;
+	}
+	file << "Nodes (index. label-parent,(child_0,..)):" << endl;
+	for (int i = 0; i < tree->nodes.size(); i++) {
+		file << i << ". ";
+		if (tree->nodes[i]) {
+			file << tree->nodes[i]->label;
+			file << '-';
+			if (tree->nodes[i]->parent) {
+				file << tree->nodes[i]->parent->label;
+			}
+			file << '(';
+			bool print = false;
+			for (int j = 0; j < tree->nodes[i]->edges.size(); j++) {
+				if (print) {
+					file << ',';
+				}
+				else {
+					print = true;
+				}
+				file << tree->nodes[i]->edges[j]->label;
+			}
+			file << ')';
+		}
+		file << endl;
 	}
 }
 

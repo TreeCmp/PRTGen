@@ -61,8 +61,9 @@ class TreeGenerator
 							if (param.D > 0) {
 								if (param.binary) {
 									cout << "In order, D trees each distant by (1,2,3...D) " << (param.rooted ? "" : "u") << "spr:" << endl;
-									for (int j = 0; j < param.D; j++) {
+									for (int j = 0; j < param.D; j++) {										
 										tree->DoSPR();
+										//Tree::PrintDebug(tree, *param.file);
 										Tree::Print(tree->root, NULL, *param.file, pc);
 										if (pc) pc->nextTreeCounted();
 									}

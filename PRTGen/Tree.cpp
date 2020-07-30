@@ -282,6 +282,35 @@ bool Tree::isValidSPR(Edge* s, Edge* t) {
 	return true;
 }
 
+bool Tree::areNeighbours(Node* s, Node* t) {
+	for (deque<Node*>::iterator it = s->edges.begin(); it != s->edges.end(); it++) {
+		if (*it == t) {
+			//for debuging only
+			bool check = false;
+			for (deque<Node*>::iterator it = t->edges.begin(); it != t->edges.end(); it++) {
+				if (*it == s) {
+					check = true;
+				}
+			}
+			if (!check) {
+				throw new exception("missing neighbor");
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Tree::isCloserThan3(Edge* s, Edge* t) {
+	if (areNeighbours(s->parent, t->parent) ||
+		areNeighbours(s->child, t->parent) ||
+		areNeighbours(s->parent, t->child) || 
+		areNeighbours(s->child, t->child)) {
+		return true;
+	}
+	return false;
+}
+
 bool Tree::isValidUSPR(Edge* s, Edge* t) {
 	if (s == t) {
 		return false;
@@ -306,6 +335,7 @@ void Tree::DoSPR() {
 		do {
 			e1 = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];
 			e2 = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];
+			//todo: dodaæ usuwanie nadmiarowych NNI
 		} while (!isValidSPR(e1, e2));
 		Node* e1_child_brother = e1->parent->takeFirstOtherChild(e1->child);
 		if (e1->parent == this->root) {
@@ -336,10 +366,12 @@ void Tree::DoSPR() {
 	}
 	else {
 		// take two different random edges
+		bool discardingNNI;
 		do {
+			discardingNNI = false;
 			e1 = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];
-			e2 = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];
-		} while (!isValidUSPR(e1, e2));
+			e2 = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];	
+		} while (!isValidUSPR(e1, e2) || isCloserThan3(e1, e2) && range_0_INTMAX_unif_int_distr(eng1) > INT_MAX / 4);
 		Node* e1_parent = NULL;
 		Node* e1_child = NULL;
 		if (Tree::ContainsNode(e1->child, e1->parent, e2->parent)) {

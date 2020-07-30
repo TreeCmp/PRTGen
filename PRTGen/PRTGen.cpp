@@ -60,7 +60,7 @@ class TreeGenerator
 							i++;
 							if (param.D > 0) {
 								if (param.binary) {
-									cout << "In order, D trees each distant by (1,2,3...D) " << (param.rooted ? "" : "u") << "spr:" << endl;
+									//cout << "In order, D trees each distant by (1,2,3...D) " << (param.rooted ? "" : "u") << "spr:";
 									for (int j = 0; j < param.D; j++) {										
 										tree->DoSPR();
 										//Tree::PrintDebug(tree, *param.file);
@@ -72,6 +72,7 @@ class TreeGenerator
 								else {
 									cout << "For arbitrary trees SPR not implemented yet." << endl;
 								}
+								cout << endl;
 							}
 							if (pc) pc->nextTreeCounted();
 						}

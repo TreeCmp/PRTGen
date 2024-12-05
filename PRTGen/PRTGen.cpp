@@ -161,7 +161,7 @@ void printHelp() {
 	cout << "-sn X Y - include only trees in Sackin's index range (normalized values from 0.0-1.0 scope)\n";
 	cout << "-sy X Y - include only trees in Sackin's index range (Yule reference model normalized values)\n";
 	cout << "-se X Y - include only trees in Sackin's index range (uniform reference model normalized values)\n";
-	cout << "-spr D - generate for each tree D trees, each subsequent distant from the first one by 1, 2 ... D spr/uspr\n";
+	cout << "-spr D - generate for each tree D trees, each successive with one random spr/uspr modification\n";
 	cout << "-f X - save result to X file (default to console)\n\n";
 	cout << "With -b and without -e or -y option generates all possible binary N-leaf trees.\n";
 	cout << "With -a and without -e or -y option generates all possible arbitraty N-leaf\n";

@@ -59,20 +59,57 @@ class TreeGenerator
 						{
 							i++;
 							if (param.D > 0) {
-								if (param.binary) {
-									//cout << "In order, D trees each distant by (1,2,3...D) " << (param.rooted ? "" : "u") << "spr:";
-									for (int j = 0; j < param.D; j++) {										
-										tree->DoSPR();
-										//Tree::PrintDebug(tree, *param.file);
-										Tree::Print(tree->root, NULL, *param.file, pc);
-										if (pc) pc->nextTreeCounted();
+								switch (param.treeRear)
+								{
+								case NNI:
+									if (param.binary) {
+										//cout << "In order, D trees each distant by (1,2,3...D) " << (param.rooted ? "" : "u") << "spr:";
+										for (int j = 0; j < param.D; j++) {
+											tree->DoNNI();
+											//Tree::PrintDebug(tree, *param.file);
+											Tree::Print(tree->root, NULL, *param.file, pc);
+											if (pc) pc->nextTreeCounted();
+										}
+										cout << endl;
+									}
+									else {
+										cout << "For arbitrary trees NNI not implemented yet." << endl;
+									}
+									break;
+								case SPR:
+									if (param.binary) {
+										//cout << "In order, D trees each distant by (1,2,3...D) " << (param.rooted ? "" : "u") << "spr:";
+										for (int j = 0; j < param.D; j++) {
+											tree->DoSPR();
+											//Tree::PrintDebug(tree, *param.file);
+											Tree::Print(tree->root, NULL, *param.file, pc);
+											if (pc) pc->nextTreeCounted();
+										}
+										cout << endl;
+									}
+									else {
+										cout << "For arbitrary trees SPR not implemented yet." << endl;
 									}
 									cout << endl;
+									break;
+								case TBR:
+									if (param.binary) {
+										//cout << "In order, D trees each distant by (1,2,3...D) " << (param.rooted ? "" : "u") << "spr:";
+										for (int j = 0; j < param.D; j++) {
+											tree->DoTBR();
+											//Tree::PrintDebug(tree, *param.file);
+											Tree::Print(tree->root, NULL, *param.file, pc);
+											if (pc) pc->nextTreeCounted();
+										}
+										cout << endl;
+									}
+									else {
+										cout << "For arbitrary trees TBR not implemented yet." << endl;
+									}
+									break;
+								default:
+									break;
 								}
-								else {
-									cout << "For arbitrary trees SPR not implemented yet." << endl;
-								}
-								cout << endl;
 							}
 							if (pc) pc->nextTreeCounted();
 						}
@@ -161,6 +198,7 @@ void printHelp() {
 	cout << "-sn X Y - include only trees in Sackin's index range (normalized values from 0.0-1.0 scope)\n";
 	cout << "-sy X Y - include only trees in Sackin's index range (Yule reference model normalized values)\n";
 	cout << "-se X Y - include only trees in Sackin's index range (uniform reference model normalized values)\n";
+	cout << "-nni D - generate for each tree D trees, each successive with one random nni/unni modification\n";
 	cout << "-spr D - generate for each tree D trees, each successive with one random spr/uspr modification\n";
 	cout << "-f X - save result to X file (default to console)\n\n";
 	cout << "With -b and without -e or -y option generates all possible binary N-leaf trees.\n";
@@ -186,14 +224,23 @@ int main(int count, char **value)
 	int option;
 
 #ifdef _WIN32
-	while ((option = getopt(count, value, "n:e:y:ruba:is:f:")) != -1)
+	while ((option = getopt(count, value, "n:e:y:ruba:is:f:t:")) != -1)
 #else
 	while (option = getopt (count, value, "n:e:y:ruba:is:f:") != -1)
 #endif
 		switch(option)
 		{
 			case 'n':
-				param.N = atoi(optarg);
+				param.tmpoptarg = optarg;
+				if (*param.tmpoptarg == 'n') {
+					param.D = atoi(value[optind]);
+					param.treeRear = NNI;
+					optind++;
+				}
+				else
+				{
+					param.N = atoi(param.tmpoptarg);
+				}
 				break;
 			case 'e':
 				param.model = EQUAL;
@@ -225,6 +272,7 @@ int main(int count, char **value)
 				param.tmpoptarg = optarg;
 				if (*param.tmpoptarg == 'p') {
 					param.D = atoi(value[optind]);
+					param.treeRear = SPR;
 					optind++;
 				}
 				else {
@@ -248,6 +296,19 @@ int main(int count, char **value)
 				if(param.file == NULL)
 				{
 					cout << "Problem opening file: " << optarg << endl;
+					return 0;
+				}
+				break;
+			case 't':
+				param.tmpoptarg = optarg;
+				if (*param.tmpoptarg == 'b') {
+					param.D = atoi(value[optind]);
+					param.treeRear = TBR;
+					optind++;
+				}
+				else
+				{
+					cout << "Wrong argument: t" << optarg << endl;
 					return 0;
 				}
 				break;

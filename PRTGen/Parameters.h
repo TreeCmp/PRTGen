@@ -4,7 +4,12 @@ using namespace std;
 
 enum Model
 {
-	ALL, EQUAL, YULE
+	UNKNOWN, ALL, EQUAL, YULE
+};
+
+enum TreeRearrangement
+{
+	UNDEFINED, NNI, SPR, TBR
 };
 
 struct Parameters{	
@@ -13,6 +18,7 @@ struct Parameters{
 	bool rooted = true;
 	bool binary = true;
 	Model model = ALL;
+	TreeRearrangement treeRear = UNDEFINED;
 	ostream *file = NULL;
 	char* tmpoptarg = NULL;
 };

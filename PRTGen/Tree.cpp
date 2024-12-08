@@ -57,6 +57,12 @@ void Node::joinIfNotContains(Node *parent, Node *child)
 
 void Node::separate(Node *parent, Node *child)
 {
+#ifdef DEBUG
+	if (parent != child->parent)
+	{
+		throw exception("the vertices are not neighbors and cannot be separated");
+	}
+#endif // DEBUG
 	Node::erase(parent->edges, child);
 	Node::erase(child->edges, parent);
 	child->parent = NULL;
@@ -266,6 +272,17 @@ bool Tree::isAncestor(Node* n1, Node* n2) {
 	return false;
 }
 
+bool Tree::isValidNNI(Edge* s) {
+	if (s->child->degree() < 2) {
+		return false;
+	}
+	if (s->parent->degree() < 2) {
+		return false;
+	}
+	return true;
+}
+
+
 bool Tree::isValidSPR(Edge* s, Edge* t) {
 	if (s == t) {
 		return false;
@@ -324,7 +341,41 @@ bool Tree::isValidUSPR(Edge* s, Edge* t) {
 	return true;
 }
 
-void Tree::DoSPR() {
+bool Tree::DoNNI() {
+	if (!iSTreeSizeOKForRearrangement(this))
+	{
+		return false;
+	}
+	std::random_device rd;  //Will be used to obtain a seed for the random number engine
+	std::default_random_engine eng1(rd());
+	std::uniform_int_distribution<int> range_0_INTMAX_unif_int_distr(0, INT_MAX);
+	Edge* e = NULL;
+	// take one random internal edge
+	do {
+		e = this->edges[range_0_INTMAX_unif_int_distr(eng1) % this->edges.size()];
+	} while (!isValidNNI(e));
+	Node* e1 = e->parent;
+	Node* e2 = e->child;
+	Node* u;
+	Node* v;
+	do {
+		u = e1->edges[range_0_INTMAX_unif_int_distr(eng1) % e1->edges.size()];
+	} while (u == e2 || u == this->root);
+	do {
+		v = e2->edges[range_0_INTMAX_unif_int_distr(eng1) % e2->edges.size()];
+	} while (v == e1 || v == this->root);
+	Node::separate(e1, u);
+	Node::separate(e2, v);
+	Node::join(e1, v);
+	Node::join(u, e2);
+	return true;
+}
+
+bool Tree::DoSPR() {
+	if (!iSTreeSizeOKForRearrangement(this))
+	{
+		return false;
+	}
 	std::random_device rd;  //Will be used to obtain a seed for the random number engine
 	std::default_random_engine eng1(rd());
 	std::uniform_int_distribution<int> range_0_INTMAX_unif_int_distr(0, INT_MAX);
@@ -414,6 +465,25 @@ void Tree::DoSPR() {
 			Edge::swapParent(this->edges, e2_parent, e2_child, e1_parent);
 		}
 	}
+	return true;
+}
+
+bool Tree::DoTBR() {
+	if (!iSTreeSizeOKForRearrangement(this))
+	{
+		return false;
+	}
+	throw exception("TBR distance not implemented yet");
+	return true;
+}
+
+bool Tree::iSTreeSizeOKForRearrangement(Tree* tree)
+{
+	if (tree->rooted && tree->nodes.size() < 3 || tree->nodes.size() < 4)
+	{
+		return false;
+	}
+	return true;
 }
 
 bool Tree::ContainsNode(Node* node, Node* excepted_neighbor, Node* wanted) {

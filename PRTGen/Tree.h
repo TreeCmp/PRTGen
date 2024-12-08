@@ -93,7 +93,9 @@ public:
 	static double NormalizeSackinIndex(int sackinInd);
 	
 	static void CountSum();
-	void DoSPR();
+	bool DoNNI();
+	bool DoSPR();
+	bool DoTBR();
 	bool ContainsNode(Node* root_node, Node* excepted_neighbor, Node* wanted);
 	void ClearAndDelete();
 	void Delete();
@@ -102,8 +104,10 @@ public:
 private:	
 	static void PrintRec(Node* node, Node *parent, ostream& file);
 	bool isAncestor(Node* n1, Node* n2);
+	bool isValidNNI(Edge* s);
 	bool isValidSPR(Edge* s, Edge* t);
 	bool isValidUSPR(Edge* s, Edge* t);
 	bool isCloserThan3(Edge* s, Edge* t);
 	bool areNeighbours(Node* s, Node* t);
+	bool iSTreeSizeOKForRearrangement(Tree* tree);
 };

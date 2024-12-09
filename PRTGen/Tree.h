@@ -29,6 +29,7 @@ public:
 	int Node::degree();
 	Node* takeFirstOtherChild(Node *n);
 	Node* takeSecondOtherChild(Node *n);
+	Node* takeRandomOtherChild(Node* n);
 	Node* takeFirstOtherNeigbour(Node *n);
 	Node* takeSecondOtherNeigbour(Node *n);
 	bool ContainsNeigbour(Node* wanted);
@@ -64,8 +65,8 @@ public:
 
 	static int N;
 	Node *root;
-	deque<Edge*> edges;
-	deque<Node*> nodes;
+	deque<Edge*> allEdges;
+	deque<Node*> allNodes;
 	float P;
 	bool generateAllTrees;
 	int internalNodesNumberExpected;

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <ctime>
+#include "Parameters.h"
 
 class ProgressCounter
 {
@@ -17,7 +18,7 @@ class ProgressCounter
 
 public:
 
-	ProgressCounter(int N, int M, bool R, bool B, int P);
+	ProgressCounter(Parameters param);
 	unsigned long long get_trees_number();
 	void nextTreeCounted();
 	void nextTreeRejected();

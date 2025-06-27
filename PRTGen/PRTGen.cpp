@@ -193,7 +193,7 @@ void printHelp() {
 	cout << "-u - unrooted trees\n";
 	cout << "-b - binary trees\n";
 	cout << "-a P - arbitrary trees with P propablility of multifurcation occurence\n";
-	cout << " (required 0 >= P >= 1, Yule or uniform case)\n";
+	cout << " (required 0 <= P <= 1, Yule or uniform case)\n";
 	cout << "-i - print indexes values (e.g. Sackin's index)\n";
 	cout << "-sn X Y - include only trees in Sackin's index range (normalized values from 0.0-1.0 scope)\n";
 	cout << "-sy X Y - include only trees in Sackin's index range (Yule reference model normalized values)\n";
@@ -228,94 +228,94 @@ int main(int count, char **value)
 #else
 	while (option = getopt (count, value, "n:e:y:ruba:is:f:") != -1)
 #endif
-		switch(option)
-		{
-			case 'n':
-				param.tmpoptarg = optarg;
-				if (*param.tmpoptarg == 'n') {
-					param.D = atoi(value[optind]);
-					param.treeRear = NNI;
+	switch(option)
+	{
+		case 'n':
+			param.tmpoptarg = optarg;
+			if (*param.tmpoptarg == 'n') {
+				param.D = atoi(value[optind]);
+				param.treeRear = NNI;
+				optind++;
+			}
+			else
+			{
+				param.N = atoi(param.tmpoptarg);
+			}
+			break;
+		case 'e':
+			param.model = EQUAL;
+			Tree::sackin_norm_model = 'e';
+			param.M = atoi(optarg);
+			break;
+		case 'y':
+			param.model = YULE;
+			Tree::sackin_norm_model = 'y';
+			param.M = atoi(optarg);
+			break;
+		case 'r':
+			param.rooted = true;
+			break;
+		case 'u':
+			param.rooted = false;
+			break;
+		case 'b':
+			param.binary = true;
+			break;
+		case 'a':
+			param.binary = false;
+			param.P = atof(optarg);
+			break;
+		case 'i':
+			Tree::printIndexes = true;
+			break;
+		case 's':
+			param.tmpoptarg = optarg;
+			if (*param.tmpoptarg == 'p') {
+				param.D = atoi(value[optind]);
+				param.treeRear = SPR;
+				optind++;
+			}
+			else {
+				Tree::sackin_norm_model = *param.tmpoptarg;
+				if (optind < count && *value[optind] != '-') {
+					Tree::minSackinsIndex = atof(value[optind]);
 					optind++;
 				}
-				else
-				{
-					param.N = atoi(param.tmpoptarg);
-				}
-				break;
-			case 'e':
-				param.model = EQUAL;
-				Tree::sackin_norm_model = 'e';
-				param.M = atoi(optarg);
-				break;
-			case 'y':
-				param.model = YULE;
-				Tree::sackin_norm_model = 'y';
-				param.M = atoi(optarg);
-				break;
-			case 'r':
-				param.rooted = true;
-				break;
-			case 'u':
-				param.rooted = false;
-				break;
-			case 'b':
-				param.binary = true;
-				break;
-			case 'a':
-				param.binary = false;
-				param.P = atof(optarg);
-				break;
-			case 'i':
-				Tree::printIndexes = true;
-				break;
-			case 's':
-				param.tmpoptarg = optarg;
-				if (*param.tmpoptarg == 'p') {
-					param.D = atoi(value[optind]);
-					param.treeRear = SPR;
+				if (optind < count && *value[optind] != '-') {
+					Tree::maxSackinsIndex = atof(value[optind]);
 					optind++;
 				}
 				else {
-					Tree::sackin_norm_model = *param.tmpoptarg;
-					if (optind < count && *value[optind] != '-') {
-						Tree::minSackinsIndex = atof(value[optind]);
-						optind++;
-					}
-					if (optind < count && *value[optind] != '-') {
-						Tree::maxSackinsIndex = atof(value[optind]);
-						optind++;
-					}
-					else {
-						cout << "-s? option require two float numbers \n";
-						return 0;
-					}
-				}
-				break;
-			case 'f':
-				param.file = new ofstream(optarg);
-				if(param.file == NULL)
-				{
-					cout << "Problem opening file: " << optarg << endl;
+					cout << "-s? option require two float numbers \n";
 					return 0;
 				}
-				break;
-			case 't':
-				param.tmpoptarg = optarg;
-				if (*param.tmpoptarg == 'b') {
-					param.D = atoi(value[optind]);
-					param.treeRear = TBR;
-					optind++;
-				}
-				else
-				{
-					cout << "Wrong argument: t" << optarg << endl;
-					return 0;
-				}
-				break;
-			default:
-				printHelp();
+			}
+			break;
+		case 'f':
+			param.file = new ofstream(optarg);
+			if(param.file == NULL)
+			{
+				cout << "Problem opening file: " << optarg << endl;
 				return 0;
-		}
+			}
+			break;
+		case 't':
+			param.tmpoptarg = optarg;
+			if (*param.tmpoptarg == 'b') {
+				param.D = atoi(value[optind]);
+				param.treeRear = TBR;
+				optind++;
+			}
+			else
+			{
+				cout << "Wrong argument: t" << optarg << endl;
+				return 0;
+			}
+			break;
+		default:
+			printHelp();
+			return 0;
+	}
 	
 	if (param.M < 1 && param.model != ALL)
 	{

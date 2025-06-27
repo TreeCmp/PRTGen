@@ -742,7 +742,7 @@ Tree*Tree::Yule(Parameters param, ProgressCounter* pc)
 		} while (edge->pendant() == false && !(n == N && rooted));
 
 		// add bifurcation with 1-P probability
-		if (param.P < static_cast<float>(range_0_1_unif_float_distr(eng1)) / static_cast<float>(INT_MAX)) {
+		if (param.P < static_cast<float>(range_0_1_unif_float_distr(eng1))) {
 
 			// remove taken edge
 			Edge::erase(tree->allEdges, edge);

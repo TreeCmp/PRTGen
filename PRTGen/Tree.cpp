@@ -703,7 +703,7 @@ Tree*Tree::Yule(Parameters param, ProgressCounter* pc)
 
 	int *label = new int[N];
 	for (int i = 0; i < N; i++)
-		label[i] = i + 1;
+		label[i] = i + param.startingLabel;
 
 	// permutate labels
 	for (int i = N - 1; i >= 1; i--)
@@ -801,7 +801,7 @@ void Tree::All(Parameters param, ProgressCounter* pc)
 	Tree *tree = new Tree(param);
 	int *label = new int[N];
 	for (int i = 0; i < N; i++)
-		label[i] = i + 1;
+		label[i] = i + param.startingLabel;
 
 	int n = 0;
 	// create two initial vertex and join them

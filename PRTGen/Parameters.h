@@ -14,7 +14,8 @@ enum TreeRearrangement
 
 struct Parameters{	
 	int N = 0, M = 0, D = 0;
-	float P = 0.0;
+	float P = 0.0; // multifurcation occurrence probability
+	int startingLabel = 1;
 	bool rooted = true;
 	bool binary = true;
 	Model model = ALL;

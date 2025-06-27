@@ -194,6 +194,7 @@ void printHelp() {
 	cout << "-b - binary trees\n";
 	cout << "-a P - arbitrary trees with P propablility of multifurcation occurence\n";
 	cout << " (required 0 <= P <= 1, Yule or uniform case)\n";
+	cout << "-l - starting label number >= 1 (default = 1)\n";
 	cout << "-i - print indexes values (e.g. Sackin's index)\n";
 	cout << "-sn X Y - include only trees in Sackin's index range (normalized values from 0.0-1.0 scope)\n";
 	cout << "-sy X Y - include only trees in Sackin's index range (Yule reference model normalized values)\n";
@@ -224,7 +225,7 @@ int main(int count, char **value)
 	int option;
 
 #ifdef _WIN32
-	while ((option = getopt(count, value, "n:e:y:ruba:is:f:t:")) != -1)
+	while ((option = getopt(count, value, "n:e:y:rubal:is:f:t:")) != -1)
 #else
 	while (option = getopt (count, value, "n:e:y:ruba:is:f:") != -1)
 #endif
@@ -264,6 +265,9 @@ int main(int count, char **value)
 		case 'a':
 			param.binary = false;
 			param.P = atof(optarg);
+			break;
+		case 'l':
+			param.startingLabel = atoi(optarg);
 			break;
 		case 'i':
 			Tree::printIndexes = true;

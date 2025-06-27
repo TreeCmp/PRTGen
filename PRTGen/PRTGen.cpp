@@ -225,9 +225,9 @@ int main(int count, char **value)
 	int option;
 
 #ifdef _WIN32
-	while ((option = getopt(count, value, "n:e:y:rubal:is:f:t:")) != -1)
+	while ((option = getopt(count, value, "n:e:y:ruba:l:is:f:t:")) != -1)
 #else
-	while (option = getopt (count, value, "n:e:y:ruba:is:f:") != -1)
+	while (option = getopt (count, value, "n:e:y:ruba:l:is:f:t:") != -1)
 #endif
 	switch(option)
 	{

@@ -223,11 +223,12 @@ int main(int count, char **value)
 {
 	Parameters param;
 	int option;
+	char* token = nullptr;
 
 #ifdef _WIN32
-	while ((option = getopt(count, value, "n:e:y:ruba:l:is:f:t:")) != -1)
+	while ((option = getopt(count, value, "n:e:y:ruba:l:is:f:t:w::")) != -1)
 #else
-	while (option = getopt (count, value, "n:e:y:ruba:l:is:f:t:") != -1)
+	while (option = getopt(count, value, "n:e:y:ruba:l:is:f:t:w::") != -1)
 #endif
 	switch(option)
 	{
@@ -314,6 +315,16 @@ int main(int count, char **value)
 			{
 				cout << "Wrong argument: t" << optarg << endl;
 				return 0;
+			}
+		case 'w':
+			param.tmpoptarg = optarg;
+			token = strtok(optarg, ":");
+			if (token != nullptr) {
+				param.minWeightVal = std::atoi(token);
+				token = strtok(nullptr, ":");
+				if (token != nullptr) {
+					param.maxWeightVal = std::atoi(token);
+				}
 			}
 			break;
 		default:

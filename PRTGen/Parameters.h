@@ -18,6 +18,9 @@ struct Parameters{
 	int startingLabel = 1;
 	bool rooted = true;
 	bool binary = true;
+	bool weighted = false;
+	int minWeightVal = 0;
+	int maxWeightVal = INT32_MAX;
 	Model model = ALL;
 	TreeRearrangement treeRear = UNDEFINED;
 	ostream *file = NULL;

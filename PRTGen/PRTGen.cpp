@@ -317,6 +317,7 @@ int main(int count, char **value)
 				return 0;
 			}
 		case 'w':
+			param.weighted = true;
 			param.tmpoptarg = optarg;
 			token = strtok(optarg, ":");
 			if (token != nullptr) {

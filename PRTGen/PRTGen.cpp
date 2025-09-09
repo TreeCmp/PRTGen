@@ -40,12 +40,23 @@ class TreeGenerator
 			Tree::N = param.N;
 			ProgressCounter* pc = NULL;
 			Tree::CountSum();
+			int edgesCount = 2 * param.N;
+			int nodesCount = 2 * param.N;
 			switch(param.model)
 			{
 				case EQUAL:
 					//file << M << endl;
-					Edge::edges = new Edge[3 * param.N];
-					Node::nodes = new Node[2 * param.N];
+					Edge::edges = new Edge[edgesCount];
+					Node::nodes = new Node[nodesCount];
+					if (param.weighted)
+					{
+						for (int i = 0; i < nodesCount; i++)
+						{
+							Node::nodes[i].weight = generateRandomWeight(param.minWeightVal,
+								param.maxWeightVal,
+								param.useFloatingWeights);
+						}
+					}
 					if (param.file != &cout) pc = new ProgressCounter(param);
 					for(int i = 0; i < param.M;)
 					{
@@ -182,7 +193,29 @@ class TreeGenerator
 			cout << "Node balance: " << Node::count << endl;
 			*/
 		}
+
 		char* generateRandomWeight(double minWeightVal,
+			double maxWeightVal,
+			bool useFloatingWeights)
+		{
+			static std::random_device rd;
+			static std::mt19937 gen(rd());
+
+			char* result = new char[64];
+
+			if (useFloatingWeights) {
+				std::uniform_real_distribution<double> dist(minWeightVal, maxWeightVal);
+				double value = dist(gen);
+				std::sprintf(result, "%.4f", value);
+			}
+			else {
+				std::uniform_int_distribution<int> dist(static_cast<int>(minWeightVal), static_cast<int>(maxWeightVal));
+				int value = dist(gen);
+				std::sprintf(result, "%d", value);
+			}
+
+			return result;
+		}
 };
 
 #include <iostream>
@@ -190,7 +223,7 @@ class TreeGenerator
 #include <limits>
 
 void parseWeightRange(const char* optarg,
-	Parameters params)
+	Parameters& params)
 {
 	std::string arg(optarg);
 	size_t pos = arg.find(':');

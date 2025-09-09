@@ -139,7 +139,10 @@ Node* Node::takeSecondOtherNeigbour(Node *forbiddenNeigbour) {
 	}
 }
 
-Node::~Node() { count--; }
+Node::~Node() {
+	delete weight;
+	count--;
+}
 
 Edge::Edge() : parent(), child() {}
 

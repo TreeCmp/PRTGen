@@ -182,6 +182,7 @@ class TreeGenerator
 			cout << "Node balance: " << Node::count << endl;
 			*/
 		}
+		char* generateRandomWeight(double minWeightVal,
 };
 
 #include <iostream>

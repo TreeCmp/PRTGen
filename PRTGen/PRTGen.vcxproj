@@ -82,6 +82,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Node.cpp" />
     <ClCompile Include="ProgressCounter.cpp" />
     <ClCompile Include="PRTGen.cpp" />
     <ClCompile Include="Tree.cpp" />
@@ -92,6 +93,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Node.h" />
     <ClInclude Include="Parameters.h" />
     <ClInclude Include="ProgressCounter.h" />
     <ClInclude Include="Tree.h" />

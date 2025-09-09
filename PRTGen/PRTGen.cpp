@@ -48,18 +48,19 @@ class TreeGenerator
 					//file << M << endl;
 					Edge::edges = new Edge[edgesCount];
 					Node::nodes = new Node[nodesCount];
-					if (param.weighted)
-					{
-						for (int i = 0; i < nodesCount; i++)
-						{
-							Node::nodes[i].weight = generateRandomWeight(param.minWeightVal,
-								param.maxWeightVal,
-								param.useFloatingWeights);
-						}
-					}
+
 					if (param.file != &cout) pc = new ProgressCounter(param);
 					for(int i = 0; i < param.M;)
 					{
+						if (param.weighted)
+						{
+							for (int i = 0; i < nodesCount; i++)
+							{
+								Node::nodes[i].weight = generateRandomWeight(param.minWeightVal,
+									param.maxWeightVal,
+									param.useFloatingWeights);
+							}
+						}
 						Tree *tree = Tree::Equal(param, pc);
 
 						// Print root children count and Sackin index value (only for debuging)

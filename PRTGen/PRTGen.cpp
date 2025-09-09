@@ -188,7 +188,6 @@ class TreeGenerator
 #include <string>
 #include <limits>
 
-// Funkcja do parsowania zakresu
 void parseWeightRange(const char* optarg,
 	Parameters params)
 {

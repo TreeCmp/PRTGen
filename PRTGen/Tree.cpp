@@ -6,13 +6,13 @@
 
 using namespace std;
 
-Node::Node(Node* parent) : label(0), siblingNumber(0)
+Node::Node(Node* parent) : label(0), weight(NULL), siblingNumber(0)
 {
 	this->parent = parent;
 	count++;
 }
 
-Node::Node(int a, Node* parent) : label(a), siblingNumber(0)
+Node::Node(int a, char* weight, Node* parent) : label(a), weight(weight), siblingNumber(0)
 {
 	this->parent = parent;
 	count++;
@@ -145,7 +145,7 @@ Edge::Edge() : parent(), child() {}
 
 Edge::Edge(Node *parent, Node *child) : parent(parent), child(child) { count++; }
 
-Edge* Edge::Add(Node *parent, Node *child, double weight)
+Edge* Edge::Add(Node *parent, Node *child)
 {
 	edges[Edge::index].parent = parent;
 	edges[Edge::index].child = child;
@@ -1032,6 +1032,9 @@ void Tree::PrintRec(Node* node, Node *parent, ostream& file)
 	}
 	if (node->label > 0) {
 		file << node->label;
+	}
+	if (node->weight) {
+		file << ':' << node->weight;
 	}
 }
 

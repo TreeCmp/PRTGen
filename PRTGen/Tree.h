@@ -11,6 +11,7 @@ public:
 
 	// labels from 1 to N, internal nodes label equals 0
 	int label;
+	char* weight;
 	deque<Node*> edges;
 	Node* parent;
 	int siblingNumber;
@@ -19,7 +20,7 @@ public:
 	static int count;
 
 	Node(Node* = NULL);
-	Node(int a, Node* = NULL);
+	Node(int a, char* weight = NULL, Node* = NULL);
 	static Node* Add(Node* = NULL);
 	static Node* Add(int a, Node* = NULL);
 	static void join(Node *a, Node *b);
@@ -41,14 +42,13 @@ class Edge
 public:
 
 	Node *parent, *child;
-	double weight = 0.0;
 	static Edge* edges;
 	static int index;
 	static int count;
 
 	Edge();
 	Edge(Node *a, Node *b);
-	static Edge* Add(Node *a, Node *b, double weight = 0.0);
+	static Edge* Add(Node* a, Node* b);
 	static void erase(deque<Edge*>& edges, Node *n);
 	static void erase(deque<Edge*>& edges, Edge *e);
 	static int swapParent(deque<Edge*>& edges, Edge *e, Node *new_parent);

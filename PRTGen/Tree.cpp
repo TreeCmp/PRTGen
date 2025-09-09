@@ -792,7 +792,10 @@ void Tree::PrintRec(Node* node, Node *parent, ostream& file)
 	if (node->label > 0) {
 		file << node->label;
 	}
-	file << ':' << node->weight;
+	if (!node->weight.empty())
+	{
+		file << ':' << node->weight;
+	}
 }
 
 void Tree::PrintDebug(Tree* tree, ostream& file)

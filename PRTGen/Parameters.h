@@ -19,8 +19,9 @@ struct Parameters{
 	bool rooted = true;
 	bool binary = true;
 	bool weighted = false;
-	int minWeightVal = 0;
-	int maxWeightVal = INT32_MAX;
+	bool useFloatingWeights = false;
+	double minWeightVal = 0.0;
+	double maxWeightVal = numeric_limits<double>::infinity();
 	Model model = ALL;
 	TreeRearrangement treeRear = UNDEFINED;
 	ostream *file = NULL;

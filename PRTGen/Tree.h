@@ -41,13 +41,14 @@ class Edge
 public:
 
 	Node *parent, *child;
+	double weight = 0.0;
 	static Edge* edges;
 	static int index;
 	static int count;
 
 	Edge();
 	Edge(Node *a, Node *b);
-	static Edge* Add(Node *a, Node *b);
+	static Edge* Add(Node *a, Node *b, double weight = 0.0);
 	static void erase(deque<Edge*>& edges, Node *n);
 	static void erase(deque<Edge*>& edges, Edge *e);
 	static int swapParent(deque<Edge*>& edges, Edge *e, Node *new_parent);

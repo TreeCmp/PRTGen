@@ -145,7 +145,7 @@ Edge::Edge() : parent(), child() {}
 
 Edge::Edge(Node *parent, Node *child) : parent(parent), child(child) { count++; }
 
-Edge* Edge::Add(Node *parent, Node *child)
+Edge* Edge::Add(Node *parent, Node *child, double weight)
 {
 	edges[Edge::index].parent = parent;
 	edges[Edge::index].child = child;
@@ -568,6 +568,10 @@ Tree* Tree::Equal(Parameters param, ProgressCounter* pc)
 
 		tree->allNodes.push_back(node);
 		Node::join(tree->root, node);
+		if (param.weighted)
+		{
+ 
+		}
 		tree->allEdges.push_back(Edge::Add(tree->root, node));
 
 	}

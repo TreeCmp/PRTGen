@@ -184,6 +184,37 @@ class TreeGenerator
 		}
 };
 
+#include <iostream>
+#include <string>
+#include <limits>
+
+// Funkcja do parsowania zakresu
+void parseWeightRange(const char* optarg,
+	Parameters params)
+{
+	std::string arg(optarg);
+	size_t pos = arg.find(':');
+
+	if (pos != std::string::npos) {
+		std::string left = arg.substr(0, pos);
+		std::string right = arg.substr(pos + 1);
+
+		params.minWeightVal = std::stod(left);
+		params.maxWeightVal = std::stod(right);
+
+		if (left.find_first_of(".eE") != std::string::npos ||
+			right.find_first_of(".eE") != std::string::npos) {
+			params.useFloatingWeights = true;
+		}
+	}
+	else {
+		params.minWeightVal = std::stod(arg);
+		if (arg.find_first_of(".eE") != std::string::npos) {
+			params.useFloatingWeights = true;
+		}
+	}
+}
+
 void printHelp() {
 	cout << "Configuration: " << PTGEN_EXE <<" [-n N] [-e M|-y M] [-r|-u] [-b|-p P] [-f X]" << endl;
 	cout << "-n N - number of leaves (required N >= 3)\n";
@@ -319,14 +350,7 @@ int main(int count, char **value)
 		case 'w':
 			param.weighted = true;
 			param.tmpoptarg = optarg;
-			token = strtok(optarg, ":");
-			if (token != nullptr) {
-				param.minWeightVal = std::atoi(token);
-				token = strtok(nullptr, ":");
-				if (token != nullptr) {
-					param.maxWeightVal = std::atoi(token);
-				}
-			}
+			parseWeightRange(optarg, param);
 			break;
 		default:
 			printHelp();

@@ -249,29 +249,31 @@ void parseWeightRange(const char* optarg,
 }
 
 void printHelp() {
-	cout << "Configuration: " << PTGEN_EXE <<" [-n N] [-e M|-y M] [-r|-u] [-b|-p P] [-f X]" << endl;
-	cout << "-n N - number of leaves (required N >= 3)\n";
-	cout << "-e M - M trees with uniform distribution\n";
-	cout << "-y M - M trees with Yule's distribution\n";
-	cout << "-r - rooted trees\n";
-	cout << "-u - unrooted trees\n";
-	cout << "-b - binary trees\n";
-	cout << "-a P - arbitrary trees with P propablility of multifurcation occurence\n";
-	cout << " (required 0 <= P <= 1, Yule or uniform case)\n";
-	cout << "-l - starting label number >= 1 (default = 1)\n";
-	cout << "-i - print indexes values (e.g. Sackin's index)\n";
-	cout << "-sn X Y - include only trees in Sackin's index range (normalized values from 0.0-1.0 scope)\n";
-	cout << "-sy X Y - include only trees in Sackin's index range (Yule reference model normalized values)\n";
-	cout << "-se X Y - include only trees in Sackin's index range (uniform reference model normalized values)\n";
-	cout << "-nni D - generate for each tree D trees, each successive with one random nni/unni modification\n";
-	cout << "-spr D - generate for each tree D trees, each successive with one random spr/uspr modification\n";
-	cout << "-f X - save result to X file (default to console)\n\n";
-	cout << "With -b and without -e or -y option generates all possible binary N-leaf trees.\n";
-	cout << "With -a and without -e or -y option generates all possible arbitraty N-leaf\n";
-	cout <<	" trees (case with P = 0) or generates all possible arbitraty N-leaf \n";
-	cout << " trees with I internal nodes (case with P = I where, for rooted trees:\n";
-	cout << " 1 <= I <= N-1, and for unrooted trees: 1 <= I <= N-2).\n\n";
-	cout << "By default binary rooted trees are generated.\n";
+	cout << "Configuration: " << PTGEN_EXE << " [-n N] [-e M|-y M] [-r|-u] [-b|-a P] [-f X] [-w min:max]" << endl;
+	cout << "-n N  - number of leaves (required N >= 3)\n";
+	cout << "-e M  - generate M trees with uniform distribution\n";
+	cout << "-y M  - generate M trees with Yule's distribution\n";
+	cout << "-r    - rooted trees\n";
+	cout << "-u    - unrooted trees\n";
+	cout << "-b    - binary trees\n";
+	cout << "-a P  - arbitrary trees with probability P of multifurcation occurrence\n";
+	cout << "        (required 0 <= P <= 1, Yule or uniform case)\n";
+	cout << "-l    - starting label number >= 1 (default = 1)\n";
+	cout << "-i    - print index values (e.g., Sackin's index)\n";
+	cout << "-sn X Y - include only trees in Sackin's index range (normalized 0.0-1.0)\n";
+	cout << "-sy X Y - include only trees in Sackin's index range (Yule reference model)\n";
+	cout << "-se X Y - include only trees in Sackin's index range (uniform reference model)\n";
+	cout << "-nni D  - for each tree, generate D trees with one random nni/unni modification each\n";
+	cout << "-spr D  - for each tree, generate D trees with one random spr/uspr modification each\n";
+	cout << "-f X    - save result to file X (default: console)\n";
+	cout << "-w min:max - set branch weights from min to max; if at least one number has a dot,\n";
+	cout << "             weights will be floating-point, otherwise integers\n\n";
+
+	cout << "With -b and without -e or -y option, generates all possible binary N-leaf trees.\n";
+	cout << "With -a and without -e or -y option, generates all possible arbitrary N-leaf trees.\n";
+	cout << "  (case P = 0) or all possible arbitrary N-leaf trees with I internal nodes\n";
+	cout << "  (case P = I, where for rooted trees: 1 <= I <= N-1, for unrooted trees: 1 <= I <= N-2).\n\n";
+	cout << "By default, binary rooted trees are generated.\n";
 }
 
 /*********************************************************************************/

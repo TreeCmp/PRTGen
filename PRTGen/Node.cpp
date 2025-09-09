@@ -1,17 +1,18 @@
 #include <deque>
 #include <random>
+#include <string>
 #include "Tree.h"
 #include "ProgressCounter.h"
 
 using namespace std;
 
-Node::Node(Node* parent) : label(0), weight(NULL), siblingNumber(0)
+Node::Node(Node* parent) : label(0), weight(""), siblingNumber(0)
 {
 	this->parent = parent;
 	count++;
 }
 
-Node::Node(int a, char* weight, Node* parent) : label(a), weight(weight), siblingNumber(0)
+Node::Node(int a, string weight, Node* parent) : label(a), weight(weight), siblingNumber(0)
 {
 	this->parent = parent;
 	count++;
@@ -154,6 +155,5 @@ bool Node::ContainsNeigbour(Node* wanted) {
 }
 
 Node::~Node() {
-	delete weight;
 	count--;
 }

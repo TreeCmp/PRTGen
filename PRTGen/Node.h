@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include <string>
 #include "ProgressCounter.h"
 
 using namespace std;
@@ -11,7 +12,7 @@ public:
 
 	// labels from 1 to N, internal nodes label equals 0
 	int label;
-	char* weight;
+	string weight;
 	deque<Node*> edges;
 	Node* parent;
 	int siblingNumber;
@@ -20,7 +21,7 @@ public:
 	static int count;
 
 	Node(Node* = NULL);
-	Node(int a, char* weight = NULL, Node* = NULL);
+	Node(int a, string weight = "", Node* = NULL);
 	static Node* Add(Node* = NULL);
 	static Node* Add(int a, Node* = NULL);
 	static void join(Node* a, Node* b);
